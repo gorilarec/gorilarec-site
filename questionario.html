@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Questionário — GORILAREC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #121110;
+    --bg-soft: #1a1815;
+    --cream: #ede6d8;
+    --amber: #d8a24a;
+    --teal: #2f4a44;
+    --line: rgba(237,230,216,0.14);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--cream);
+    font-family:'Work Sans', sans-serif;
+    font-weight:300;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:40px 6vw;
+  }
+  .display{font-family:'Bebas Neue', sans-serif; letter-spacing:0.02em;}
+  .mono{font-family:'JetBrains Mono', monospace;}
+
+  .top-logo{
+    position:fixed; top:28px; left:6vw;
+    font-size:20px; letter-spacing:0.08em;
+  }
+  .top-logo span{color:var(--amber);}
+
+  .quiz-wrap{width:100%; max-width:680px;}
+  .quiz-intro{margin-bottom:32px;}
+  .quiz-intro .mono{color:var(--amber); font-size:12px; letter-spacing:0.15em; margin-bottom:12px; display:block;}
+  .quiz-intro h1{font-size:clamp(30px,5vw,44px); text-transform:uppercase; line-height:1;}
+
+  .quiz-box{
+    background:var(--bg-soft);
+    border:1px solid var(--line);
+    padding:48px;
+  }
+  .quiz-progress{height:2px; background:var(--line); margin-bottom:40px; position:relative;}
+  .quiz-progress-bar{height:100%; background:var(--amber); width:14.28%; transition:width 0.4s ease;}
+  .quiz-step-label{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--amber); letter-spacing:0.1em; margin-bottom:12px;}
+  .quiz-step h3{font-size:clamp(22px,3vw,30px); text-transform:uppercase; font-family:'Bebas Neue',sans-serif; margin-bottom:28px; line-height:1.15;}
+  .quiz-step{display:none;}
+  .quiz-step.active{display:block; animation:reveal 0.5s ease forwards;}
+  @keyframes reveal{from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:translateY(0);}}
+  .quiz-options{display:flex; flex-direction:column; gap:10px;}
+  .quiz-option{display:block; padding:16px 20px; border:1px solid var(--line); cursor:pointer; font-size:15px; transition:border-color 0.25s ease, background 0.25s ease;}
+  .quiz-option:hover{border-color:rgba(216,162,74,0.5);}
+  .quiz-option input{display:none;}
+  .quiz-option.selected{border-color:var(--amber); background:rgba(216,162,74,0.08);}
+  .quiz-input{width:100%; background:transparent; border:1px solid var(--line); color:var(--cream); padding:16px 20px; font-size:15px; font-family:inherit;}
+  .quiz-input:focus{outline:none; border-color:var(--amber);}
+  .quiz-nav{display:flex; justify-content:space-between; margin-top:40px;}
+  .quiz-btn{font-family:'JetBrains Mono',monospace; font-size:13px; letter-spacing:0.08em; padding:14px 28px; border:1px solid var(--amber); background:transparent; color:var(--cream); cursor:pointer; transition:background 0.3s ease, color 0.3s ease;}
+  .quiz-btn:hover{background:var(--amber); color:var(--bg);}
+  .quiz-btn.ghost{border-color:var(--line); color:rgba(237,230,216,0.6); visibility:hidden;}
+  .quiz-btn.ghost:hover{background:var(--bg-soft); color:var(--cream);}
+  .quiz-summary{font-size:14px; line-height:1.9; color:rgba(237,230,216,0.8);}
+  .quiz-summary b{color:var(--amber); font-weight:500;}
+  .quiz-done-icon{width:48px; height:48px; border:1px solid var(--amber); border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--amber); font-size:20px; margin-bottom:20px;}
+  .back-link{display:inline-block; margin-top:24px; font-size:13px; color:rgba(237,230,216,0.5); text-decoration:none; font-family:'JetBrains Mono',monospace;}
+  .back-link:hover{color:var(--amber);}
+
+  @media(max-width:640px){
+    .quiz-box{padding:28px 22px;}
+    .top-logo{position:static; margin-bottom:32px; display:block;}
+    body{align-items:flex-start; padding-top:32px;}
+  }
+</style>
+</head>
+<body>
+
+<a class="top-logo display" href="index.html">GORILA<span>REC</span></a>
+
+<div class="quiz-wrap">
+  <div class="quiz-intro">
+    <span class="mono">PERFIL DE CLIENTE</span>
+    <h1 class="display">Vamos te conhecer</h1>
+  </div>
+
+  <div class="quiz-box">
+    <div class="quiz-progress"><div class="quiz-progress-bar" id="quizBar"></div></div>
+
+    <div class="quiz-step active" data-step="1">
+      <div class="quiz-step-label mono">PERGUNTA 01/07</div>
+      <h3>Qual o nicho do seu negócio?</h3>
+      <input class="quiz-input" type="text" id="q1" placeholder="Ex: restaurante, e-commerce de roupas, clínica...">
+    </div>
+
+    <div class="quiz-step" data-step="2">
+      <div class="quiz-step-label mono">PERGUNTA 02/07</div>
+      <h3>Qual a faixa de faturamento mensal do negócio?</h3>
+      <div class="quiz-options" data-question="q2">
+        <label class="quiz-option"><input type="radio" name="q2" value="Até R$ 10 mil">Até R$ 10 mil</label>
+        <label class="quiz-option"><input type="radio" name="q2" value="R$ 10 mil a R$ 30 mil">R$ 10 mil a R$ 30 mil</label>
+        <label class="quiz-option"><input type="radio" name="q2" value="R$ 30 mil a R$ 100 mil">R$ 30 mil a R$ 100 mil</label>
+        <label class="quiz-option"><input type="radio" name="q2" value="Acima de R$ 100 mil">Acima de R$ 100 mil</label>
+        <label class="quiz-option"><input type="radio" name="q2" value="Prefiro não informar">Prefiro não informar</label>
+      </div>
+    </div>
+
+    <div class="quiz-step" data-step="3">
+      <div class="quiz-step-label mono">PERGUNTA 03/07</div>
+      <h3>Que nível de vídeo você está esperando?</h3>
+      <div class="quiz-options" data-question="q3">
+        <label class="quiz-option"><input type="radio" name="q3" value="Simples e direto, pra redes sociais">Simples e direto, pra redes sociais</label>
+        <label class="quiz-option"><input type="radio" name="q3" value="Profissional, institucional/comercial">Profissional, institucional/comercial</label>
+        <label class="quiz-option"><input type="radio" name="q3" value="Cinematográfico, alta produção">Cinematográfico, alta produção</label>
+        <label class="quiz-option"><input type="radio" name="q3" value="Ainda não sei, quero orientação">Ainda não sei, quero orientação</label>
+      </div>
+    </div>
+
+    <div class="quiz-step" data-step="4">
+      <div class="quiz-step-label mono">PERGUNTA 04/07</div>
+      <h3>Tem alguma referência visual? (marca, vídeo, criador)</h3>
+      <input class="quiz-input" type="text" id="q4" placeholder="Opcional — pode deixar em branco">
+    </div>
+
+    <div class="quiz-step" data-step="5">
+      <div class="quiz-step-label mono">PERGUNTA 05/07</div>
+      <h3>Qual investimento mensal pretende ter em audiovisual?</h3>
+      <div class="quiz-options" data-question="q5">
+        <label class="quiz-option"><input type="radio" name="q5" value="Até R$ 500">Até R$ 500</label>
+        <label class="quiz-option"><input type="radio" name="q5" value="R$ 500 a R$ 2 mil">R$ 500 a R$ 2 mil</label>
+        <label class="quiz-option"><input type="radio" name="q5" value="R$ 2 mil a R$ 5 mil">R$ 2 mil a R$ 5 mil</label>
+        <label class="quiz-option"><input type="radio" name="q5" value="Acima de R$ 5 mil">Acima de R$ 5 mil</label>
+      </div>
+    </div>
+
+    <div class="quiz-step" data-step="6">
+      <div class="quiz-step-label mono">PERGUNTA 06/07</div>
+      <h3>Qual o prazo pra começar o projeto?</h3>
+      <div class="quiz-options" data-question="q6">
+        <label class="quiz-option"><input type="radio" name="q6" value="Imediato, quero começar já">Imediato, quero começar já</label>
+        <label class="quiz-option"><input type="radio" name="q6" value="Nas próximas semanas">Nas próximas semanas</label>
+        <label class="quiz-option"><input type="radio" name="q6" value="Só pesquisando por enquanto">Só pesquisando por enquanto</label>
+      </div>
+    </div>
+
+    <div class="quiz-step" data-step="7">
+      <div class="quiz-step-label mono">PERGUNTA 07/07</div>
+      <h3>Pra fechar, seu nome e WhatsApp:</h3>
+      <input class="quiz-input" type="text" id="q7name" placeholder="Seu nome" style="margin-bottom:12px;">
+      <input class="quiz-input" type="text" id="q7whats" placeholder="Seu WhatsApp (com DDD)">
+    </div>
+
+    <div class="quiz-step" data-step="8">
+      <div class="quiz-done-icon" id="quizDoneIcon">✓</div>
+      <h3 id="quizStatusTitle">Perfil enviado!</h3>
+      <div class="quiz-summary" id="quizSummary"></div>
+      <p id="quizStatusMsg" style="margin-top:20px; font-size:13px; color:rgba(237,230,216,0.5); line-height:1.6;">
+        Obrigado! Suas respostas foram registradas. Em breve alguém da GORILAREC entra em contato.
+      </p>
+      <div id="quizWhatsWrap" style="margin-top:20px; display:none;">
+        <a class="quiz-btn" id="quizWhatsBtn" href="#" target="_blank" rel="noopener" style="display:inline-block; text-decoration:none;">FALAR NO WHATSAPP →</a>
+      </div>
+      <a class="back-link" href="index.html">← voltar ao site</a>
+    </div>
+
+    <div class="quiz-nav" id="quizNav">
+      <button class="quiz-btn ghost" id="quizPrev">← VOLTAR</button>
+      <button class="quiz-btn" id="quizNext">CONTINUAR →</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+(function(){
+  const SUPABASE_URL = 'https://rtozvexesbexdtrvqhqz.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_Dp1_2smIHajOz4XJIKgK_A_LrjfG_16';
+  const OWNER_ID = 'cb868d10-70f8-4590-9dd0-95af13f5e7c8';
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  function escapeHtml(str){
+    return String(str ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  const totalSteps = 8;
+  let current = 1;
+  const answers = {};
+
+  const bar = document.getElementById('quizBar');
+  const nav = document.getElementById('quizNav');
+  const prevBtn = document.getElementById('quizPrev');
+  const nextBtn = document.getElementById('quizNext');
+  const steps = document.querySelectorAll('.quiz-step');
+
+  document.querySelectorAll('.quiz-options').forEach(group => {
+    group.addEventListener('click', (e) => {
+      const label = e.target.closest('.quiz-option');
+      if(!label) return;
+      group.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
+      label.classList.add('selected');
+    });
+  });
+
+  function showStep(n){
+    steps.forEach(s => s.classList.toggle('active', parseInt(s.dataset.step) === n));
+    bar.style.width = (n/totalSteps*100) + '%';
+    prevBtn.style.visibility = n === 1 ? 'hidden' : 'visible';
+    nav.style.display = n === totalSteps ? 'none' : 'flex';
+    nextBtn.textContent = n === totalSteps - 1 ? 'FINALIZAR →' : 'CONTINUAR →';
+  }
+
+  function validateStep(n){
+    if(n === 1) return document.getElementById('q1').value.trim().length > 0;
+    if(n === 2) return !!document.querySelector('input[name="q2"]:checked');
+    if(n === 3) return !!document.querySelector('input[name="q3"]:checked');
+    if(n === 4) return true;
+    if(n === 5) return !!document.querySelector('input[name="q5"]:checked');
+    if(n === 6) return !!document.querySelector('input[name="q6"]:checked');
+    if(n === 7) return document.getElementById('q7name').value.trim().length > 0 &&
+                        document.getElementById('q7whats').value.trim().length > 0;
+    return true;
+  }
+
+  function collectStep(n){
+    if(n === 1) answers.nicho = document.getElementById('q1').value.trim();
+    if(n === 2) answers.faturamento = document.querySelector('input[name="q2"]:checked')?.value || '';
+    if(n === 3) answers.nivel = document.querySelector('input[name="q3"]:checked')?.value || '';
+    if(n === 4) answers.referencia = document.getElementById('q4').value.trim() || 'Não informou';
+    if(n === 5) answers.investimento = document.querySelector('input[name="q5"]:checked')?.value || '';
+    if(n === 6) answers.prazo = document.querySelector('input[name="q6"]:checked')?.value || '';
+    if(n === 7){
+      answers.nome = document.getElementById('q7name').value.trim();
+      answers.whats = document.getElementById('q7whats').value.trim();
+    }
+  }
+
+  async function buildSummary(){
+    const summaryEl = document.getElementById('quizSummary');
+    const doneIcon = document.getElementById('quizDoneIcon');
+    const statusTitle = document.getElementById('quizStatusTitle');
+    const statusMsg = document.getElementById('quizStatusMsg');
+
+    summaryEl.innerHTML = `
+      <b>Nome:</b> ${escapeHtml(answers.nome)}<br>
+      <b>WhatsApp:</b> ${escapeHtml(answers.whats)}<br>
+      <b>Nicho:</b> ${escapeHtml(answers.nicho)}<br>
+      <b>Faturamento:</b> ${escapeHtml(answers.faturamento)}<br>
+      <b>Nível de vídeo:</b> ${escapeHtml(answers.nivel)}<br>
+      <b>Referência:</b> ${escapeHtml(answers.referencia)}<br>
+      <b>Investimento em audiovisual:</b> ${escapeHtml(answers.investimento)}<br>
+      <b>Prazo:</b> ${escapeHtml(answers.prazo)}
+    `;
+
+    try {
+      const { error } = await supabaseClient.from('leads').insert({
+        user_id: OWNER_ID,
+        nome: answers.nome,
+        whatsapp: answers.whats,
+        nicho: answers.nicho,
+        faturamento: answers.faturamento,
+        nivel: answers.nivel,
+        referencia: answers.referencia,
+        investimento: answers.investimento,
+        prazo: answers.prazo,
+      });
+      if(error) throw error;
+
+      statusMsg.textContent = 'Obrigado! Suas respostas foram registradas. Se quiser já ir adiantando a conversa, chama no WhatsApp:';
+      const msg = `Olá! Acabei de responder o questionário no site.%0A%0ANome: ${answers.nome}%0ANicho: ${answers.nicho}`;
+      document.getElementById('quizWhatsBtn').href = `https://wa.me/5575992297244?text=${msg}`;
+      document.getElementById('quizWhatsWrap').style.display = 'block';
+    } catch(err){
+      console.error('Não foi possível enviar o perfil:', err);
+      doneIcon.textContent = '!';
+      statusTitle.textContent = 'Não deu pra enviar agora';
+      statusMsg.textContent = 'Algo deu errado ao registrar suas respostas. Tenta novamente em alguns instantes.';
+    }
+  }
+
+  nextBtn.addEventListener('click', async () => {
+    if(!validateStep(current)){
+      nextBtn.style.borderColor = '#c25b4a';
+      setTimeout(() => nextBtn.style.borderColor = '', 400);
+      return;
+    }
+    collectStep(current);
+    current++;
+    showStep(current);
+    if(current === totalSteps){
+      nextBtn.disabled = true;
+      await buildSummary();
+      nextBtn.disabled = false;
+    }
+  });
+
+  prevBtn.addEventListener('click', () => {
+    if(current > 1){ current--; showStep(current); }
+  });
+
+  showStep(current);
+})();
+</script>
+
+</body>
+</html>

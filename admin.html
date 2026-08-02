@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADM — GORILAREC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #121110;
+    --bg-soft: #1a1815;
+    --bg-soft2: #201d19;
+    --cream: #ede6d8;
+    --amber: #d8a24a;
+    --teal: #2f4a44;
+    --line: rgba(237,230,216,0.14);
+    --red: #c25b4a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--cream);
+    font-family:'Work Sans', sans-serif;
+    font-weight:300;
+    min-height:100vh;
+  }
+  .display{font-family:'Bebas Neue', sans-serif; letter-spacing:0.02em;}
+  .mono{font-family:'JetBrains Mono', monospace;}
+
+  /* GATE DE SENHA (visual apenas, por enquanto) */
+  #gate{
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    padding:24px;
+  }
+  .gate-box{
+    width:100%; max-width:360px; text-align:center;
+  }
+  .gate-box .logo{font-size:24px; margin-bottom:8px;}
+  .gate-box .logo span{color:var(--amber);}
+  .gate-box .mono{color:rgba(237,230,216,0.45); font-size:12px; letter-spacing:0.1em; margin-bottom:32px; display:block;}
+  .gate-input{
+    width:100%; background:var(--bg-soft); border:1px solid var(--line); color:var(--cream);
+    padding:14px 16px; font-size:15px; text-align:center; letter-spacing:0.2em; margin-bottom:16px;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .gate-input:focus{outline:none; border-color:var(--amber);}
+  .gate-btn{
+    width:100%; padding:14px; background:var(--amber); color:var(--bg); border:none;
+    font-family:'JetBrains Mono',monospace; font-size:13px; letter-spacing:0.1em; cursor:pointer;
+  }
+  .gate-note{margin-top:20px; font-size:12px; color:rgba(237,230,216,0.35); line-height:1.6;}
+
+  /* PAINEL */
+  #panel{display:none;}
+  header{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:24px 4vw; border-bottom:1px solid var(--line);
+  }
+  header .logo{font-size:20px;}
+  header .logo span{color:var(--amber);}
+  header .status{font-size:11px; color:rgba(237,230,216,0.4); letter-spacing:0.1em;}
+  header .status .dot{display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--red); margin-right:6px;}
+
+  main{padding:40px 4vw 80px;}
+  .stats{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
+    background:var(--line); margin-bottom:48px; border:1px solid var(--line);
+  }
+  .stat{background:var(--bg-soft); padding:24px;}
+  .stat .num{font-family:'Bebas Neue',sans-serif; font-size:40px; color:var(--amber); line-height:1;}
+  .stat .label{font-size:11px; color:rgba(237,230,216,0.45); letter-spacing:0.08em; margin-top:6px; text-transform:uppercase;}
+
+  .table-head{
+    display:flex; justify-content:space-between; align-items:baseline;
+    margin-bottom:20px; flex-wrap:wrap; gap:12px;
+  }
+  .table-head h1{font-size:clamp(26px,4vw,36px); text-transform:uppercase;}
+  .table-head .mono{font-size:11px; color:rgba(237,230,216,0.4); letter-spacing:0.08em;}
+
+  table{width:100%; border-collapse:collapse; font-size:14px;}
+  thead th{
+    text-align:left; font-family:'JetBrains Mono',monospace; font-size:11px;
+    letter-spacing:0.08em; color:rgba(237,230,216,0.45); text-transform:uppercase;
+    padding:12px 16px; border-bottom:1px solid var(--line);
+  }
+  tbody td{padding:16px; border-bottom:1px solid var(--line); vertical-align:top;}
+  tbody tr{cursor:pointer; transition:background 0.2s ease;}
+  tbody tr:hover{background:var(--bg-soft);}
+  .name-cell{font-weight:500;}
+  .name-cell .sub{display:block; font-size:12px; color:rgba(237,230,216,0.4); margin-top:2px;}
+  .tag{
+    display:inline-block; padding:4px 10px; font-size:11px; font-family:'JetBrains Mono',monospace;
+    border:1px solid var(--line); letter-spacing:0.05em;
+  }
+  .tag.hot{border-color:var(--amber); color:var(--amber);}
+  .tag.warm{border-color:var(--teal); color:#7fa89a;}
+  .tag.cold{border-color:var(--line); color:rgba(237,230,216,0.4);}
+
+  .empty-note{
+    margin-top:24px; padding:16px 20px; border:1px dashed var(--line);
+    font-size:13px; color:rgba(237,230,216,0.5); line-height:1.7;
+  }
+  .empty-note b{color:var(--amber); font-weight:500;}
+
+  @media(max-width:760px){
+    .stats{grid-template-columns:repeat(2,1fr);}
+    table, thead, tbody, th, td, tr{display:block;}
+    thead{display:none;}
+    tbody tr{border:1px solid var(--line); margin-bottom:12px; padding:12px;}
+    tbody td{border:none; padding:6px 4px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- TELA DE SENHA (visual — sem validação real ainda) -->
+<div id="gate">
+  <div class="gate-box">
+    <div class="logo display">GORILA<span>REC</span></div>
+    <span class="mono">ÁREA ADMINISTRATIVA</span>
+    <input class="gate-input" type="email" id="gateEmail" placeholder="email" style="text-align:left; letter-spacing:normal;" autocomplete="username">
+    <input class="gate-input" type="password" id="gatePass" placeholder="senha" style="text-align:left; letter-spacing:normal;" autocomplete="current-password">
+    <button class="gate-btn" id="gateBtn">ENTRAR</button>
+    <p class="gate-note" id="gateError" style="color:var(--red);"></p>
+  </div>
+</div>
+
+<!-- PAINEL -->
+<div id="panel">
+  <header>
+    <div class="logo display">GORILA<span>REC</span></div>
+    <div class="status mono" id="statusLine"><span class="dot" id="statusDot"></span>CONECTANDO...</div>
+  </header>
+
+  <main>
+    <div class="stats">
+      <div class="stat"><div class="num" id="statTotal">0</div><div class="label">Respostas</div></div>
+      <div class="stat"><div class="num" id="statHot">0</div><div class="label">Leads quentes</div></div>
+      <div class="stat"><div class="num" id="statTicket">—</div><div class="label">Ticket médio citado</div></div>
+      <div class="stat"><div class="num" id="statImediato">0</div><div class="label">Prazo imediato</div></div>
+    </div>
+
+    <div class="table-head">
+      <h1 class="display">Respostas recebidas</h1>
+      <span class="mono">ORDENADO POR MAIS RECENTE</span>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Nicho</th>
+          <th>Faturamento</th>
+          <th>Investimento</th>
+          <th>Prazo</th>
+          <th>Perfil</th>
+        </tr>
+      </thead>
+      <tbody id="rowsBody">
+      </tbody>
+    </table>
+
+    <div class="empty-note" id="emptyNote" style="display:none;">
+      <b>Nenhuma resposta ainda.</b> Assim que alguém responder o questionário no site, a resposta aparece aqui automaticamente, em tempo real.
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+  const SUPABASE_URL = 'https://rtozvexesbexdtrvqhqz.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_Dp1_2smIHajOz4XJIKgK_A_LrjfG_16';
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  function escapeHtml(str){
+    return String(str ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  let leads = [];
+
+  function classify(lead){
+    const prazoImediato = lead.prazo === 'Imediato, quero começar já';
+    const investAlto = lead.investimento === 'R$ 2 mil a R$ 5 mil' || lead.investimento === 'Acima de R$ 5 mil';
+    if(prazoImediato && investAlto) return 'hot';
+    if(prazoImediato || investAlto) return 'warm';
+    return 'cold';
+  }
+
+  function renderStats(){
+    const total = leads.length;
+    const hot = leads.filter(l => classify(l) === 'hot').length;
+    const imediato = leads.filter(l => l.prazo === 'Imediato, quero começar já').length;
+
+    const counts = {};
+    leads.forEach(l => { if(l.investimento) counts[l.investimento] = (counts[l.investimento]||0) + 1; });
+    const ticket = Object.keys(counts).sort((a,b) => counts[b]-counts[a])[0] || '—';
+
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statHot').textContent = hot;
+    document.getElementById('statTicket').textContent = ticket;
+    document.getElementById('statImediato').textContent = imediato;
+  }
+
+  function renderRows(){
+    const tbody = document.getElementById('rowsBody');
+    const emptyNote = document.getElementById('emptyNote');
+    emptyNote.style.display = leads.length === 0 ? 'block' : 'none';
+
+    tbody.innerHTML = leads.map(r => {
+      const perfil = classify(r);
+      return `
+      <tr>
+        <td class="name-cell">${escapeHtml(r.nome)}<span class="sub">${escapeHtml(r.whatsapp)}</span></td>
+        <td>${escapeHtml(r.nicho)}</td>
+        <td>${escapeHtml(r.faturamento)}</td>
+        <td>${escapeHtml(r.investimento)}</td>
+        <td>${escapeHtml(r.prazo)}</td>
+        <td><span class="tag ${perfil}">${perfil === 'hot' ? 'QUENTE' : perfil === 'warm' ? 'MORNO' : 'FRIO'}</span></td>
+      </tr>
+    `;
+    }).join('');
+  }
+
+  function renderAll(){
+    renderStats();
+    renderRows();
+  }
+
+  function setStatus(text, ok){
+    document.getElementById('statusLine').lastChild.textContent = text;
+    document.getElementById('statusDot').style.background = ok ? '#5fae7d' : '';
+  }
+
+  async function loadLeads(){
+    setStatus('CARREGANDO...', false);
+    const { data, error } = await supabaseClient
+      .from('leads')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if(error){
+      console.error('Erro ao carregar leads:', error);
+      setStatus('ERRO AO CARREGAR DADOS', false);
+      return;
+    }
+
+    leads = data;
+    renderAll();
+    setStatus('CONECTADO — TEMPO REAL', true);
+
+    supabaseClient
+      .channel('leads-changes')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leads' }, (payload) => {
+        leads.unshift(payload.new);
+        renderAll();
+      })
+      .subscribe();
+  }
+
+  async function tryLogin(){
+    const email = document.getElementById('gateEmail').value.trim();
+    const password = document.getElementById('gatePass').value;
+    const errorEl = document.getElementById('gateError');
+    errorEl.textContent = '';
+
+    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if(error){
+      errorEl.textContent = 'Erro: ' + error.message;
+      console.error('Erro de login:', error);
+      return;
+    }
+
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('panel').style.display = 'block';
+    loadLeads();
+  }
+
+  document.getElementById('gateBtn').addEventListener('click', tryLogin);
+  document.getElementById('gatePass').addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') tryLogin();
+  });
+  document.getElementById('gateEmail').addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') document.getElementById('gatePass').focus();
+  });
+</script>
+
+</body>
+</html>
