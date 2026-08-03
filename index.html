@@ -577,23 +577,26 @@
 (function(){
   document.querySelectorAll('.frame.has-video').forEach(frame => {
     const video = frame.querySelector('video');
-    const playBtn = frame.querySelector('.frame-play');
     const fsBtn = frame.querySelector('.frame-fs-btn');
-    playBtn.addEventListener('click', () => {
-      document.querySelectorAll('.frame.has-video.playing').forEach(other => {
-        if(other !== frame){
-          other.classList.remove('playing');
-          other.querySelector('video').pause();
-        }
-      });
-      frame.classList.add('playing');
-      video.muted = false;
-      video.controls = true;
-      video.play();
+
+    frame.addEventListener('click', (e) => {
+      if(e.target === fsBtn) return;
+      if(video.paused){
+        document.querySelectorAll('.frame.has-video.playing').forEach(other => {
+          if(other !== frame){
+            other.classList.remove('playing');
+            other.querySelector('video').pause();
+          }
+        });
+        frame.classList.add('playing');
+        video.muted = false;
+        video.play();
+      } else {
+        video.pause();
+        frame.classList.remove('playing');
+      }
     });
-    video.addEventListener('pause', () => {
-      if(video.currentTime === 0 || video.ended) frame.classList.remove('playing');
-    });
+    video.addEventListener('ended', () => frame.classList.remove('playing'));
     fsBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       if(video.requestFullscreen) video.requestFullscreen();
