@@ -205,9 +205,12 @@
   .grav-item .info b{color:var(--amber); font-weight:500;}
   .grav-item select{background:var(--bg-soft2); color:var(--cream); border:1px solid var(--line); font-size:11px; padding:4px 6px; font-family:'JetBrains Mono',monospace;}
 
+  .cal-dot{display:none;}
+
   @media(max-width:760px){
     .cal-day{min-height:44px; font-size:10px;}
     .cal-day .item{display:none;}
+    .cal-dot{display:inline-block; width:6px; height:6px; border-radius:50%; background:linear-gradient(135deg, var(--amber) 50%, #e8985a 50%); margin-top:3px;}
   }
 
   @media(max-width:760px){
@@ -1230,7 +1233,8 @@
         return `<div class="item" title="${escapeHtml(nome)}">${escapeHtml(nome)}</div>`;
       }).join('');
       const more = items.length > 2 ? `<div class="more">+${items.length - 2}</div>` : '';
-      return `<div class="${classes.join(' ')}" data-date="${k}"><div class="daynum">${c.day}</div>${shown}${more}</div>`;
+      const dot = items.length > 0 ? '<span class="cal-dot"></span>' : '';
+      return `<div class="${classes.join(' ')}" data-date="${k}"><div class="daynum">${c.day}</div>${dot}${shown}${more}</div>`;
     }).join('');
 
     document.getElementById('calGrid').innerHTML = html;
