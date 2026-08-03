@@ -326,6 +326,12 @@
   .frame.has-video video{
     width:100%; height:100%; object-fit:cover; display:block;
   }
+  .frame.has-video video:fullscreen{
+    object-fit:contain; background:#000; width:100%; height:100%;
+  }
+  .frame.has-video video:-webkit-full-screen{
+    object-fit:contain; background:#000; width:100%; height:100%;
+  }
   .frame.has-video span{
     position:absolute; left:20px; bottom:20px; z-index:2;
     text-shadow:0 2px 8px rgba(0,0,0,0.8);

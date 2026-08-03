@@ -70,9 +70,35 @@
   .view-toggle button{background:var(--bg-soft); border:none; color:rgba(237,230,216,0.5); font-family:'JetBrains Mono',monospace; font-size:11px; padding:8px 14px; cursor:pointer; letter-spacing:0.05em;}
   .view-toggle button.active{background:var(--amber); color:var(--bg);}
 
-  .section-tabs{display:flex; gap:24px; border-bottom:1px solid var(--line); margin-bottom:28px;}
-  .section-tabs button{background:none; border:none; color:rgba(237,230,216,0.45); font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:0.03em; padding:0 0 14px; cursor:pointer; border-bottom:2px solid transparent; text-transform:uppercase;}
-  .section-tabs button.active{color:var(--amber); border-bottom-color:var(--amber);}
+  .app-shell{display:flex; min-height:100vh;}
+  .sidebar{width:56px; flex-shrink:0; border-right:1px solid var(--line); padding:28px 10px; display:flex; flex-direction:column; gap:6px; position:sticky; top:0; height:100vh; overflow:hidden; transition:width 0.18s ease; z-index:20;}
+  .sidebar:hover, .sidebar.pinned{width:190px; padding:28px 18px;}
+  .sidebar .logo{font-size:20px; margin-bottom:24px; white-space:nowrap;}
+  .sidebar-pin{background:none; border:none; color:rgba(237,230,216,0.4); font-size:16px; cursor:pointer; text-align:left; padding:0 2px; margin-bottom:16px; align-self:flex-start;}
+  .sidebar-pin:hover{color:var(--amber);}
+  .sidebar.pinned .sidebar-pin{color:var(--amber);}
+  .side-nav{display:flex; flex-direction:column; gap:2px;}
+  .side-link{background:none; border:none; color:rgba(237,230,216,0.5); font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:0.06em; text-align:left; padding:10px 12px; cursor:pointer; text-transform:uppercase; border-left:2px solid transparent; white-space:nowrap; display:flex; align-items:center; gap:10px;}
+  .side-link:hover{color:var(--cream);}
+  .sidebar:hover .side-link.active, .sidebar.pinned .side-link.active{color:var(--amber); background:rgba(216,162,74,0.08); border-left-color:var(--amber);}
+  .logo-short{display:inline-block;}
+  .full-label{display:inline-block; opacity:0; max-width:0; overflow:hidden; transition:opacity 0.15s ease; white-space:nowrap;}
+  .sidebar:hover .full-label, .sidebar.pinned .full-label{opacity:1; max-width:160px;}
+  .sidebar:hover .logo-short, .sidebar.pinned .logo-short{display:none;}
+  #logoutBtn.btn{justify-content:flex-start; gap:10px; display:flex; align-items:center;}
+  .main-area{flex:1; min-width:0;}
+
+  @media(max-width:760px){
+    .app-shell{flex-direction:column;}
+    .sidebar{width:100% !important; height:auto; position:static; flex-direction:row; overflow-x:auto; padding:14px !important; align-items:center;}
+    .sidebar .logo{margin-bottom:0; margin-right:12px;}
+    .sidebar-pin{display:none;}
+    .side-nav{flex-direction:row;}
+    .logo-short{display:none !important;}
+    .full-label{opacity:1 !important; max-width:none !important;}
+    .side-link.active{color:var(--amber); background:rgba(216,162,74,0.08); border-left-color:var(--amber);}
+    #logoutBtn{margin-top:0 !important; margin-left:auto;}
+  }
 
   /* FILTROS */
   .grid-filters{display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;}
@@ -105,6 +131,18 @@
 
   .avatar-upload{display:flex; align-items:center; gap:16px; margin-bottom:20px;}
   .avatar-upload input[type="file"]{font-size:12px; color:rgba(237,230,216,0.6);}
+
+  /* ORÇAMENTOS */
+  .orc-item-row{display:grid; grid-template-columns:1fr 70px 110px 32px; gap:8px; margin-bottom:8px; align-items:center;}
+  .orc-item-row input{background:var(--bg-soft); border:1px solid var(--line); color:var(--cream); padding:8px 10px; font-size:13px; font-family:inherit;}
+  .orc-item-row input:focus{outline:none; border-color:var(--amber);}
+  .orc-item-remove{background:none; border:1px solid var(--line); color:var(--red); cursor:pointer; width:32px; height:32px;}
+  .orc-total{text-align:right; font-family:'Bebas Neue',sans-serif; font-size:22px; color:var(--amber); margin-top:16px; padding-top:16px; border-top:1px solid var(--line);}
+  .orc-card{background:var(--bg-soft); border:1px solid var(--line); padding:18px 20px; margin-bottom:12px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;}
+  .orc-card:hover{border-color:rgba(216,162,74,0.5);}
+  .orc-card .who{font-weight:500;}
+  .orc-card .when{font-size:12px; color:rgba(237,230,216,0.45); margin-top:2px;}
+  .orc-card .amount{font-family:'JetBrains Mono',monospace; color:var(--amber); font-size:15px;}
 
   /* TABLE VIEW */
   table{width:100%; border-collapse:collapse; font-size:14px;}
@@ -180,7 +218,16 @@
     tbody tr{border:1px solid var(--line); margin-bottom:12px; padding:12px;}
     tbody td{border:none; padding:6px 4px;}
     .field-row{grid-template-columns:1fr;}
-    .modal{padding:24px;}
+    .modal{padding:20px; max-width:100%;}
+    .overlay{padding:0;}
+    .avatar-upload{flex-wrap:wrap;}
+    .orc-item-row{grid-template-columns:1fr 1fr 32px; grid-template-areas:"desc desc desc" "qtd valor remove"; gap:6px;}
+    .orc-item-row .orcDesc{grid-area:desc;}
+    .orc-item-row .orcQtd{grid-area:qtd;}
+    .orc-item-row .orcValor{grid-area:valor;}
+    .orc-item-row .orc-item-remove{grid-area:remove;}
+    .toolbar{flex-direction:column; align-items:flex-start;}
+    .stat .num{font-size:28px;}
   }
 </style>
 </head>
@@ -200,13 +247,24 @@
 </div>
 
 <div id="panel">
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <button class="sidebar-pin" id="sidebarPin" title="Fixar menu aberto">≡</button>
+    <div class="logo display"><span class="logo-short" style="color:var(--amber);">REC</span><span class="full-label">GORILA<span style="color:var(--amber);">REC</span></span></div>
+    <nav class="side-nav">
+      <button class="side-link active" id="navLeadsBtn"><span class="full-label">Leads</span></button>
+      <button class="side-link" id="navClientesBtn"><span class="full-label">Clientes</span></button>
+      <button class="side-link" id="navAgendaBtn"><span class="full-label">Agenda</span></button>
+      <button class="side-link" id="navOrcamentosBtn"><span class="full-label">Orçamentos</span></button>
+    </nav>
+    <button class="btn ghost small" id="logoutBtn" style="margin-top:auto;"><span class="full-label">SAIR</span></button>
+  </aside>
+
+  <div class="main-area">
   <header>
-    <div class="logo display">GORILA<span>REC</span> <span class="mono" style="font-size:11px; color:rgba(237,230,216,0.4);">CRM</span></div>
+    <div class="status mono" id="statusLine"><span class="dot" id="statusDot"></span>CONECTANDO...</div>
     <div class="right">
-      <div class="status mono" id="statusLine"><span class="dot" id="statusDot"></span>CONECTANDO...</div>
-      <button class="btn ghost" id="agendaBtn">AGENDA</button>
       <button class="btn" id="newLeadBtn">+ NOVO CLIENTE</button>
-      <button class="btn ghost small" id="logoutBtn">SAIR</button>
     </div>
   </header>
 
@@ -217,11 +275,6 @@
       <div class="stat"><div class="num" id="statFechado">R$ 0</div><div class="label">Fechado (total)</div></div>
       <div class="stat"><div class="num" id="statConversao">0%</div><div class="label">Taxa de conversão</div></div>
       <div class="stat"><div class="num" id="statImediato">0</div><div class="label">Prazo imediato</div></div>
-    </div>
-
-    <div class="section-tabs">
-      <button id="sectionLeadsBtn" class="active">LEADS</button>
-      <button id="sectionClientesBtn">CLIENTES</button>
     </div>
 
     <div id="leadsSection">
@@ -276,7 +329,22 @@
         <b>Nenhum cliente fechado ainda.</b> Assim que um lead virar status <b>Fechado</b> no funil, ele aparece aqui automaticamente.
       </div>
     </div>
+
+    <div id="orcamentosSection" style="display:none;">
+      <div class="toolbar">
+        <h1 class="display">Orçamentos</h1>
+        <button class="btn" id="newOrcamentoBtn">+ NOVO ORÇAMENTO</button>
+      </div>
+
+      <div id="orcamentosList"></div>
+
+      <div class="empty-note" id="orcamentosEmptyNote" style="display:none;">
+        <b>Nenhum orçamento ainda.</b> Cria um do zero, com ou sem vincular a um cliente já cadastrado.
+      </div>
+    </div>
   </main>
+  </div>
+</div>
 </div>
 
 <!-- MODAL DETALHE -->
@@ -301,6 +369,46 @@
 
     <div class="section-title">Dia selecionado</div>
     <div id="calDayList"><span class="mono" style="font-size:12px; color:rgba(237,230,216,0.4);">Nenhum dia selecionado.</span></div>
+  </div>
+</div>
+
+<!-- MODAL ORÇAMENTO -->
+<div class="overlay" id="orcamentoOverlay">
+  <div class="modal" id="orcamentoModal" style="max-width:720px;">
+    <button class="modal-close" id="orcamentoClose">×</button>
+    <h2 class="display" id="orcamentoTitle">Novo orçamento</h2>
+    <span class="mono tiny">MONTA DO ZERO, VINCULA A UM CLIENTE OU NÃO</span>
+
+    <input type="hidden" id="orcId">
+    <div class="field-row">
+      <div class="field"><label>Cliente</label><input type="text" id="orcCliente" placeholder="Nome do cliente" list="orcLeadsDatalist"></div>
+      <div class="field"><label>Validade da proposta</label><input type="date" id="orcValidade"></div>
+    </div>
+    <datalist id="orcLeadsDatalist"></datalist>
+
+    <div class="section-title">Itens</div>
+    <div id="orcItensRows"></div>
+    <button class="btn small ghost" id="orcAddItemBtn" style="margin-bottom:16px;">+ ITEM</button>
+
+    <div class="field-row">
+      <div class="field"><label>Desconto (R$)</label><input type="number" id="orcDesconto" value="0"></div>
+      <div class="field"><label>Status</label>
+        <select id="orcStatus">
+          <option value="rascunho">Rascunho</option>
+          <option value="enviado">Enviado</option>
+          <option value="aceito">Aceito</option>
+          <option value="recusado">Recusado</option>
+        </select>
+      </div>
+    </div>
+    <div class="field"><label>Observações</label><textarea id="orcObs" rows="2"></textarea></div>
+
+    <div class="orc-total">TOTAL: <span id="orcTotalDisplay">R$ 0,00</span></div>
+
+    <div class="field-row" style="margin-top:16px;">
+      <button class="btn" id="orcSaveBtn">SALVAR ORÇAMENTO</button>
+      <button class="btn ghost" id="orcPrintBtn">VER / IMPRIMIR PROPOSTA</button>
+    </div>
   </div>
 </div>
 
@@ -580,6 +688,195 @@
     wrap.querySelectorAll('.profile-card').forEach(card => {
       card.addEventListener('click', () => openDetail(card.dataset.id));
     });
+  }
+
+  // ---------- ORÇAMENTOS ----------
+  let orcamentos = [];
+  let orcCurrentId = null;
+
+  async function loadOrcamentos(){
+    const { data, error } = await supabaseClient.from('orcamentos').select('*').order('created_at', {ascending:false});
+    if(error){ console.error('Erro ao carregar orçamentos:', error); orcamentos = []; }
+    else orcamentos = data;
+    renderOrcamentos();
+  }
+
+  function orcTotal(itens, desconto){
+    const subtotal = (itens || []).reduce((sum, it) => sum + (Number(it.quantidade)||0) * (Number(it.valor)||0), 0);
+    return Math.max(subtotal - (Number(desconto)||0), 0);
+  }
+
+  const ORC_STATUS_LABEL = {rascunho:'Rascunho', enviado:'Enviado', aceito:'Aceito', recusado:'Recusado'};
+
+  function renderOrcamentos(){
+    document.getElementById('orcamentosEmptyNote').style.display = orcamentos.length === 0 ? 'block' : 'none';
+    const wrap = document.getElementById('orcamentosList');
+    wrap.innerHTML = orcamentos.map(o => {
+      const total = orcTotal(o.itens, o.desconto);
+      return `
+        <div class="orc-card" data-id="${o.id}">
+          <div>
+            <div class="who">${escapeHtml(o.cliente_nome)}</div>
+            <div class="when mono">${new Date(o.created_at).toLocaleDateString('pt-BR')} · ${ORC_STATUS_LABEL[o.status] || o.status}</div>
+          </div>
+          <div class="amount">${money(total) || 'R$ 0,00'}</div>
+        </div>`;
+    }).join('');
+    wrap.querySelectorAll('.orc-card').forEach(card => {
+      card.addEventListener('click', () => openOrcamento(card.dataset.id));
+    });
+  }
+
+  function orcItemRowHtml(item){
+    const it = item || {descricao:'', quantidade:1, valor:''};
+    return `
+      <div class="orc-item-row">
+        <input type="text" class="orcDesc" placeholder="Descrição do item/serviço" value="${escapeHtml(it.descricao)}">
+        <input type="number" class="orcQtd" placeholder="Qtd" value="${it.quantidade}" min="1">
+        <input type="number" class="orcValor" placeholder="Valor unit." value="${it.valor}">
+        <button type="button" class="orc-item-remove">×</button>
+      </div>`;
+  }
+
+  function orcAddItemRow(item){
+    const rows = document.getElementById('orcItensRows');
+    const div = document.createElement('div');
+    div.innerHTML = orcItemRowHtml(item);
+    const row = div.firstElementChild;
+    rows.appendChild(row);
+    row.querySelector('.orc-item-remove').addEventListener('click', () => { row.remove(); recalcOrcTotal(); });
+    row.querySelectorAll('input').forEach(inp => inp.addEventListener('input', recalcOrcTotal));
+  }
+
+  function recalcOrcTotal(){
+    const itens = collectOrcItens();
+    const desconto = Number(document.getElementById('orcDesconto').value) || 0;
+    document.getElementById('orcTotalDisplay').textContent = money(orcTotal(itens, desconto)) || 'R$ 0,00';
+  }
+
+  function collectOrcItens(){
+    return [...document.querySelectorAll('#orcItensRows .orc-item-row')].map(row => ({
+      descricao: row.querySelector('.orcDesc').value.trim(),
+      quantidade: Number(row.querySelector('.orcQtd').value) || 1,
+      valor: Number(row.querySelector('.orcValor').value) || 0,
+    })).filter(it => it.descricao);
+  }
+
+  function fillLeadsDatalist(){
+    document.getElementById('orcLeadsDatalist').innerHTML = leads.map(l => `<option value="${escapeHtml(l.nome)}">`).join('');
+  }
+
+  function openNewOrcamento(){
+    orcCurrentId = null;
+    document.getElementById('orcamentoTitle').textContent = 'Novo orçamento';
+    document.getElementById('orcId').value = '';
+    document.getElementById('orcCliente').value = '';
+    document.getElementById('orcValidade').value = '';
+    document.getElementById('orcDesconto').value = 0;
+    document.getElementById('orcStatus').value = 'rascunho';
+    document.getElementById('orcObs').value = '';
+    document.getElementById('orcItensRows').innerHTML = '';
+    orcAddItemRow();
+    recalcOrcTotal();
+    fillLeadsDatalist();
+    document.getElementById('orcamentoOverlay').classList.add('open');
+  }
+
+  function openOrcamento(id){
+    const o = orcamentos.find(x => String(x.id) === String(id));
+    if(!o) return;
+    orcCurrentId = id;
+    document.getElementById('orcamentoTitle').textContent = 'Editar orçamento';
+    document.getElementById('orcId').value = o.id;
+    document.getElementById('orcCliente').value = o.cliente_nome || '';
+    document.getElementById('orcValidade').value = o.validade || '';
+    document.getElementById('orcDesconto').value = o.desconto || 0;
+    document.getElementById('orcStatus').value = o.status || 'rascunho';
+    document.getElementById('orcObs').value = o.observacoes || '';
+    document.getElementById('orcItensRows').innerHTML = '';
+    (o.itens && o.itens.length ? o.itens : [{descricao:'',quantidade:1,valor:''}]).forEach(orcAddItemRow);
+    recalcOrcTotal();
+    fillLeadsDatalist();
+    document.getElementById('orcamentoOverlay').classList.add('open');
+  }
+
+  async function saveOrcamento(){
+    const cliente_nome = document.getElementById('orcCliente').value.trim();
+    if(!cliente_nome){ alert('Preenche o nome do cliente.'); return; }
+    const itens = collectOrcItens();
+    if(!itens.length){ alert('Adiciona pelo menos um item.'); return; }
+
+    const payload = {
+      cliente_nome,
+      itens,
+      desconto: Number(document.getElementById('orcDesconto').value) || 0,
+      validade: document.getElementById('orcValidade').value || null,
+      status: document.getElementById('orcStatus').value,
+      observacoes: document.getElementById('orcObs').value.trim() || null,
+    };
+
+    let error;
+    if(orcCurrentId){
+      ({ error } = await supabaseClient.from('orcamentos').update(payload).eq('id', orcCurrentId));
+    } else {
+      ({ error } = await supabaseClient.from('orcamentos').insert(payload));
+    }
+    if(error){ alert('Erro ao salvar orçamento: ' + error.message); return; }
+
+    document.getElementById('orcamentoOverlay').classList.remove('open');
+    loadOrcamentos();
+  }
+
+  function printOrcamento(){
+    const cliente_nome = document.getElementById('orcCliente').value.trim() || 'Cliente';
+    const itens = collectOrcItens();
+    const desconto = Number(document.getElementById('orcDesconto').value) || 0;
+    const validade = document.getElementById('orcValidade').value;
+    const obs = document.getElementById('orcObs').value.trim();
+    const total = orcTotal(itens, desconto);
+
+    const win = window.open('', '_blank');
+    win.document.write(`
+      <!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+      <title>Proposta — ${escapeHtml(cliente_nome)}</title>
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+      <style>
+        :root{ --bg:#121110; --bg-soft:#1a1815; --cream:#ede6d8; --amber:#d8a24a; --line:rgba(237,230,216,0.14); }
+        *{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+        body{background:var(--bg); color:var(--cream); font-family:'Work Sans',sans-serif; font-weight:300; max-width:680px; margin:0 auto; padding:56px 32px;}
+        .display{font-family:'Bebas Neue',sans-serif; letter-spacing:0.02em;}
+        .mono{font-family:'JetBrains Mono',monospace;}
+        h1{font-size:28px; letter-spacing:0.03em;}
+        h1 span{color:var(--amber);}
+        .about{font-size:13px; line-height:1.7; color:rgba(237,230,216,0.65); margin:16px 0 32px; padding-bottom:24px; border-bottom:1px solid var(--line); max-width:520px;}
+        .meta{color:rgba(237,230,216,0.5); font-size:12px; letter-spacing:0.05em; margin-bottom:28px; font-family:'JetBrains Mono',monospace; text-transform:uppercase;}
+        .meta b{color:var(--cream); font-weight:500; text-transform:none; letter-spacing:0;}
+        table{width:100%; border-collapse:collapse; margin-bottom:20px;}
+        th, td{text-align:left; padding:12px 8px; border-bottom:1px solid var(--line); font-size:14px;}
+        th{font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:rgba(237,230,216,0.45); font-weight:400;}
+        .num{text-align:right;}
+        .total-row td{font-weight:500; font-size:18px; border-top:2px solid var(--amber); border-bottom:none; color:var(--amber); font-family:'Bebas Neue',sans-serif; letter-spacing:0.02em;}
+        .obs{margin-top:24px; font-size:13px; color:rgba(237,230,216,0.6); white-space:pre-wrap; line-height:1.6;}
+        .obs b{color:var(--amber); font-weight:500;}
+        @media print{ body{padding:32px 20px;} }
+      </style></head><body>
+      <h1 class="display">GORILA<span>REC</span></h1>
+      <div class="about">GORILAREC é direção de fotografia e produção audiovisual — captação de vídeo para negócios e criadores de conteúdo que precisam comunicar com força e credibilidade.</div>
+      <div class="meta">Proposta para <b>${escapeHtml(cliente_nome)}</b>${validade ? ' · válida até ' + new Date(validade+'T00:00:00').toLocaleDateString('pt-BR') : ''}</div>
+      <table>
+        <thead><tr><th>Descrição</th><th class="num">Qtd</th><th class="num">Valor unit.</th><th class="num">Subtotal</th></tr></thead>
+        <tbody>
+          ${itens.map(it => `<tr><td>${escapeHtml(it.descricao)}</td><td class="num">${it.quantidade}</td><td class="num">${money(it.valor) || '—'}</td><td class="num">${money(it.quantidade*it.valor) || '—'}</td></tr>`).join('')}
+          ${desconto > 0 ? `<tr><td colspan="3">Desconto</td><td class="num">-${money(desconto)}</td></tr>` : ''}
+          <tr class="total-row"><td colspan="3">Total</td><td class="num">${money(total)}</td></tr>
+        </tbody>
+      </table>
+      ${obs ? `<div class="obs"><b>Observações:</b><br>${escapeHtml(obs)}</div>` : ''}
+      <script>window.print();<\/script>
+      </body></html>
+    `);
+    win.document.close();
   }
 
   function setStatus(text, ok){
@@ -966,7 +1263,6 @@
     renderCalendar();
   }
 
-  document.getElementById('agendaBtn').addEventListener('click', openAgenda);
   document.getElementById('agendaClose').addEventListener('click', () => document.getElementById('agendaOverlay').classList.remove('open'));
   document.getElementById('calPrev').addEventListener('click', () => { calMonth.setMonth(calMonth.getMonth()-1); calSelectedDate = null; renderCalendar(); });
   document.getElementById('calNext').addEventListener('click', () => { calMonth.setMonth(calMonth.getMonth()+1); calSelectedDate = null; renderCalendar(); });
@@ -1064,6 +1360,13 @@
   document.getElementById('newLeadClose').addEventListener('click', closeNewLead);
   document.getElementById('nlSaveBtn').addEventListener('click', saveNewLead);
 
+  document.getElementById('newOrcamentoBtn').addEventListener('click', openNewOrcamento);
+  document.getElementById('orcamentoClose').addEventListener('click', () => document.getElementById('orcamentoOverlay').classList.remove('open'));
+  document.getElementById('orcAddItemBtn').addEventListener('click', () => { orcAddItemRow(); recalcOrcTotal(); });
+  document.getElementById('orcDesconto').addEventListener('input', recalcOrcTotal);
+  document.getElementById('orcSaveBtn').addEventListener('click', saveOrcamento);
+  document.getElementById('orcPrintBtn').addEventListener('click', printOrcamento);
+
   document.getElementById('viewGridBtn').addEventListener('click', () => {
     currentView = 'grid';
     document.getElementById('viewGridBtn').classList.add('active');
@@ -1083,26 +1386,35 @@
   document.getElementById('gridSearch').addEventListener('input', (e) => { gridSearchTerm = e.target.value; renderGrid(); });
   document.getElementById('gridStatusFilter').addEventListener('change', (e) => { gridFilterStatus = e.target.value; renderGrid(); });
 
-  document.getElementById('sectionLeadsBtn').addEventListener('click', () => {
-    currentSection = 'leads';
-    document.getElementById('sectionLeadsBtn').classList.add('active');
-    document.getElementById('sectionClientesBtn').classList.remove('active');
-    document.getElementById('leadsSection').style.display = 'block';
-    document.getElementById('clientesSection').style.display = 'none';
-    renderAll();
-  });
-  document.getElementById('sectionClientesBtn').addEventListener('click', async () => {
-    currentSection = 'clientes';
-    document.getElementById('sectionClientesBtn').classList.add('active');
-    document.getElementById('sectionLeadsBtn').classList.remove('active');
-    document.getElementById('clientesSection').style.display = 'block';
-    document.getElementById('leadsSection').style.display = 'none';
-    await loadAllGravacoes();
-    renderClientes();
+  function showSection(name){
+    currentSection = name;
+    ['navLeadsBtn','navClientesBtn','navOrcamentosBtn'].forEach(id => document.getElementById(id).classList.remove('active'));
+    ['leadsSection','clientesSection','orcamentosSection'].forEach(id => document.getElementById(id).style.display = 'none');
+    if(name === 'leads'){
+      document.getElementById('navLeadsBtn').classList.add('active');
+      document.getElementById('leadsSection').style.display = 'block';
+      renderAll();
+    } else if(name === 'clientes'){
+      document.getElementById('navClientesBtn').classList.add('active');
+      document.getElementById('clientesSection').style.display = 'block';
+      loadAllGravacoes().then(renderClientes);
+    } else if(name === 'orcamentos'){
+      document.getElementById('navOrcamentosBtn').classList.add('active');
+      document.getElementById('orcamentosSection').style.display = 'block';
+      loadOrcamentos();
+    }
+  }
+
+  document.getElementById('navLeadsBtn').addEventListener('click', () => showSection('leads'));
+  document.getElementById('navClientesBtn').addEventListener('click', () => showSection('clientes'));
+  document.getElementById('navOrcamentosBtn').addEventListener('click', () => showSection('orcamentos'));
+  document.getElementById('navAgendaBtn').addEventListener('click', openAgenda);
+  document.getElementById('sidebarPin').addEventListener('click', () => {
+    document.getElementById('sidebar').classList.toggle('pinned');
   });
   document.getElementById('clientesSearch').addEventListener('input', (e) => { clientesSearchTerm = e.target.value; renderClientes(); });
 
-  [document.getElementById('detailOverlay'), document.getElementById('newLeadOverlay'), document.getElementById('agendaOverlay')].forEach(ov => {
+  [document.getElementById('detailOverlay'), document.getElementById('newLeadOverlay'), document.getElementById('agendaOverlay'), document.getElementById('orcamentoOverlay')].forEach(ov => {
     ov.addEventListener('click', e => { if(e.target === ov){ ov.classList.remove('open'); } });
   });
 </script>
