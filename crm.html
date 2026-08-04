@@ -667,12 +667,23 @@
       <div class="field"><label>Data limite</label><input type="date" id="tfData"></div>
       <div class="field"><label>Horário (opcional)</label><input type="time" id="tfHora"></div>
     </div>
-    <div class="field"><label>Prioridade</label>
-      <select id="tfPrioridade">
-        <option value="baixa">Baixa</option>
-        <option value="media" selected>Média</option>
-        <option value="alta">Alta</option>
-      </select>
+    <div class="field-row">
+      <div class="field"><label>Prioridade</label>
+        <select id="tfPrioridade">
+          <option value="baixa">Baixa</option>
+          <option value="media" selected>Média</option>
+          <option value="alta">Alta</option>
+        </select>
+      </div>
+      <div class="field"><label>Tipo</label>
+        <select id="tfTipo">
+          <option value="gravacao">Gravação</option>
+          <option value="edicao">Edição</option>
+          <option value="live">Live</option>
+          <option value="pessoal">Pessoal</option>
+          <option value="outros" selected>Outros</option>
+        </select>
+      </div>
     </div>
     <div class="field"><label>Lembrar</label>
       <select id="tfLembrete">
@@ -1011,7 +1022,7 @@
 
   function nextGravacaoFor(leadId){
     const now = new Date();
-    const upcoming = allGravacoes
+    const upcoming = allAgendaItems
       .filter(g => String(g.lead_id) === String(leadId) && g.status === 'agendado' && new Date(g.data_hora) >= now)
       .sort((a,b) => new Date(a.data_hora) - new Date(b.data_hora));
     return upcoming[0] || null;
@@ -1243,6 +1254,7 @@
   let allTarefas = [];
   let tarefaFilterMode = 'pendentes';
   const PRIO_LABEL = {alta:'Alta', media:'Média', baixa:'Baixa'};
+  const TIPO_LABEL = {gravacao:'Gravação', edicao:'Edição', live:'Live', pessoal:'Pessoal', outros:'Outros'};
 
   function todayStr(){
     const d = new Date();
@@ -1280,6 +1292,7 @@
           <span class="titulo">${escapeHtml(t.titulo)}</span>
           ${t.leads?.nome ? `<span class="cliente-link" data-lead="${t.lead_id}">${escapeHtml(t.leads.nome)}</span>` : ''}
         </div>
+        <span class="tag">${TIPO_LABEL[t.tipo] || 'Outros'}</span>
         <span class="data">${t.data_prevista ? new Date(t.data_prevista+'T00:00:00').toLocaleDateString('pt-BR') + (t.hora_prevista ? ' ' + t.hora_prevista.slice(0,5) : '') : 'sem data'}</span>
         <button class="btn small ghost tarefaEditBtn" data-id="${t.id}">EDITAR</button>
       </div>`).join('');
@@ -1312,6 +1325,7 @@
     document.getElementById('tfData').value = '';
     document.getElementById('tfHora').value = '';
     document.getElementById('tfPrioridade').value = 'media';
+    document.getElementById('tfTipo').value = 'outros';
     document.getElementById('tfLembrete').value = '1440';
     fillTarefaLeadSelect('');
     document.getElementById('tarefaOverlay').classList.add('open');
@@ -1326,6 +1340,7 @@
     document.getElementById('tfData').value = t.data_prevista || '';
     document.getElementById('tfHora').value = t.hora_prevista ? t.hora_prevista.slice(0,5) : '';
     document.getElementById('tfPrioridade').value = t.prioridade || 'media';
+    document.getElementById('tfTipo').value = t.tipo || 'outros';
     document.getElementById('tfLembrete').value = String(t.lembrete_minutos || 1440);
     fillTarefaLeadSelect(t.lead_id || '');
     document.getElementById('tarefaOverlay').classList.add('open');
@@ -1340,6 +1355,7 @@
       data_prevista: document.getElementById('tfData').value || null,
       hora_prevista: document.getElementById('tfHora').value || null,
       prioridade: document.getElementById('tfPrioridade').value,
+      tipo: document.getElementById('tfTipo').value,
       lembrete_minutos: parseInt(document.getElementById('tfLembrete').value, 10),
       lead_id: document.getElementById('tfLead').value || null,
     };
@@ -1534,6 +1550,13 @@
       <div class="field-row" style="margin-bottom:14px;">
         <input type="text" id="tarefaTitulo" placeholder="Ex: ligar pra fechar proposta">
         <input type="date" id="tarefaData">
+        <select id="tarefaTipo">
+          <option value="gravacao">Gravação</option>
+          <option value="edicao">Edição</option>
+          <option value="live">Live</option>
+          <option value="pessoal">Pessoal</option>
+          <option value="outros" selected>Outros</option>
+        </select>
         <select id="tarefaLembrete">
           <option value="60">Lembrar 1h antes</option>
           <option value="180">Lembrar 3h antes</option>
@@ -1698,9 +1721,10 @@
   async function addTarefa(leadId){
     const titulo = document.getElementById('tarefaTitulo').value.trim();
     const data_prevista = document.getElementById('tarefaData').value || null;
+    const tipo = document.getElementById('tarefaTipo').value;
     const lembrete_minutos = parseInt(document.getElementById('tarefaLembrete').value, 10);
     if(!titulo) return;
-    const { error } = await supabaseClient.from('tarefas').insert({lead_id: leadId, titulo, data_prevista, lembrete_minutos});
+    const { error } = await supabaseClient.from('tarefas').insert({lead_id: leadId, titulo, data_prevista, tipo, lembrete_minutos});
     if(error){ alert('Erro ao salvar tarefa: ' + error.message); return; }
     document.getElementById('tarefaTitulo').value = '';
     document.getElementById('tarefaData').value = '';
@@ -1752,12 +1776,36 @@
   let calMonth = new Date();
   calMonth.setDate(1);
   let allGravacoes = [];
+  let allAgendaItems = [];
   let calSelectedDate = null;
 
   async function loadAllGravacoes(){
     const { data, error } = await supabaseClient.from('gravacoes').select('*, leads(nome)').order('data_hora', {ascending:true});
     if(error){ console.error('Erro ao carregar agenda:', error); allGravacoes = []; return; }
     allGravacoes = data;
+  }
+
+  function tarefaAsAgendaItem(t){
+    const dataHora = t.hora_prevista
+      ? new Date(`${t.data_prevista}T${t.hora_prevista}`)
+      : new Date(`${t.data_prevista}T00:00:00`);
+    return {
+      id: 'tarefa-' + t.id,
+      data_hora: dataHora.toISOString(),
+      local: null,
+      titulo: t.titulo,
+      status: 'agendado',
+      lead_id: t.lead_id,
+      leads: t.leads || null,
+    };
+  }
+
+  function buildAgendaItems(){
+    const tarefaGravacoes = allTarefas
+      .filter(t => t.tipo === 'gravacao' && !t.concluida && t.data_prevista)
+      .map(tarefaAsAgendaItem);
+    allAgendaItems = [...allGravacoes, ...tarefaGravacoes]
+      .sort((a,b) => new Date(a.data_hora) - new Date(b.data_hora));
   }
 
   function dateKey(d){
@@ -1769,7 +1817,7 @@
     document.getElementById('calLabel').textContent = label.toUpperCase();
 
     const byDay = {};
-    allGravacoes.forEach(g => {
+    allAgendaItems.forEach(g => {
       const k = dateKey(new Date(g.data_hora));
       (byDay[k] = byDay[k] || []).push(g);
     });
@@ -1838,7 +1886,8 @@
 
   async function openAgenda(){
     document.getElementById('agendaOverlay').classList.add('open');
-    await loadAllGravacoes();
+    await Promise.all([loadAllGravacoes(), loadAllTarefas()]);
+    buildAgendaItems();
     renderCalendar();
   }
 
@@ -2001,7 +2050,7 @@
     } else if(name === 'clientes'){
       document.getElementById('navClientesBtn').classList.add('active');
       document.getElementById('clientesSection').style.display = 'block';
-      loadAllGravacoes().then(renderClientes);
+      Promise.all([loadAllGravacoes(), loadAllTarefas()]).then(() => { buildAgendaItems(); renderClientes(); });
     } else if(name === 'orcamentos'){
       document.getElementById('navOrcamentosBtn').classList.add('active');
       document.getElementById('orcamentosSection').style.display = 'block';
@@ -2020,6 +2069,7 @@
   async function loadPainel(){
     renderStats();
     await Promise.all([loadAllTarefas(), loadAllGravacoes(), loadPainelDespesas()]);
+    buildAgendaItems();
     renderAttentionPanel();
     renderAgendaPreview();
     renderPainelTable();
@@ -2070,7 +2120,7 @@
 
     const now = new Date();
     const amanha = new Date(now); amanha.setDate(now.getDate()+1);
-    allGravacoes.filter(g => g.status === 'agendado' && dateKey(new Date(g.data_hora)) === dateKey(amanha)).forEach(g => {
+    allAgendaItems.filter(g => g.status === 'agendado' && dateKey(new Date(g.data_hora)) === dateKey(amanha)).forEach(g => {
       items.push({
         level: 'info',
         title: 'Gravação amanhã — ' + (g.leads?.nome || 'Cliente'),
@@ -2101,7 +2151,7 @@
 
   function renderAgendaPreview(){
     const now = new Date();
-    const upcoming = allGravacoes
+    const upcoming = allAgendaItems
       .filter(g => g.status === 'agendado' && new Date(g.data_hora) >= now)
       .sort((a,b) => new Date(a.data_hora) - new Date(b.data_hora))
       .slice(0, 5);
