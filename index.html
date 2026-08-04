@@ -118,6 +118,7 @@
   .hero-photo::after{
     content:'';
     position:absolute; inset:0;
+    pointer-events:none;
     background:linear-gradient(90deg,
       var(--bg) 0%,
       rgba(18,17,16,0.82) 14%,
@@ -199,8 +200,8 @@
   @media(max-width:900px){
     .mobile-scrub-bar{
       display:block;
-      position:absolute; left:50%; bottom:18px; transform:translateX(-50%);
-      width:60%; z-index:5;
+      position:absolute; right:6vw; bottom:18px;
+      width:34%; z-index:5;
     }
     .mobile-scrub-bar input[type=range]{
       -webkit-appearance:none; appearance:none;
