@@ -87,6 +87,10 @@
   main{padding:32px 4vw 80px;}
 
   .stats{display:grid; grid-template-columns:repeat(5,1fr); gap:1px; background:var(--line); margin-bottom:40px; border:1px solid var(--line); border-radius:10px; overflow:hidden;}
+  .stats-swipe{display:flex; gap:16px; margin-bottom:40px;}
+  .stats-swipe .stats{margin-bottom:0; flex:1; min-width:0;}
+  .stats-swipe .stats:last-child{grid-template-columns:repeat(3,1fr);}
+  .stats-dots{display:none;}
   .stat{background:var(--bg-soft); padding:20px;}
   .stat .num{font-family:'Bebas Neue',sans-serif; font-size:32px; color:var(--amber); line-height:1;}
   .stat .label{font-size:10px; color:rgba(var(--cream-rgb),0.45); letter-spacing:0.08em; margin-top:6px; text-transform:uppercase;}
@@ -321,6 +325,15 @@
 
   @media(max-width:760px){
     .stats{grid-template-columns:repeat(2,1fr);}
+    .stats-swipe{
+      overflow-x:auto; scroll-snap-type:x mandatory;
+      -webkit-overflow-scrolling:touch; gap:0; margin-bottom:0;
+    }
+    .stats-swipe .stats{flex:0 0 100%; scroll-snap-align:start;}
+    .stats-swipe .stats:last-child{grid-template-columns:repeat(2,1fr);}
+    .stats-dots{display:flex; justify-content:center; gap:6px; margin:12px 0 32px;}
+    .stats-dots .dot-ind{width:6px; height:6px; border-radius:50%; background:var(--line); transition:background 0.2s;}
+    .stats-dots .dot-ind.active{background:var(--amber);}
     .profile-grid{grid-template-columns:repeat(2,1fr);}
     table, thead, tbody, th, td, tr{display:block;}
     thead{display:none;}
@@ -411,12 +424,23 @@
         <h1 class="display">Visão geral</h1>
       </div>
 
-      <div class="stats">
-        <div class="stat"><div class="num" id="statTotal">0</div><div class="label">Clientes</div><div class="delta" id="deltaTotal"></div></div>
-        <div class="stat"><div class="num" id="statHot">0</div><div class="label">Leads quentes</div><div class="delta" id="deltaHot"></div></div>
-        <div class="stat"><div class="num" id="statFechado">R$ 0</div><div class="label">Fechado (total)</div><div class="delta" id="deltaFechado"></div></div>
-        <div class="stat"><div class="num" id="statConversao">0%</div><div class="label">Taxa de conversão</div><div class="delta" id="deltaConversao"></div></div>
-        <div class="stat"><div class="num" id="statImediato">0</div><div class="label">Prazo imediato</div><div class="delta" id="deltaImediato"></div></div>
+      <div class="stats-swipe" id="statsSwipe">
+        <div class="stats-page stats">
+          <div class="stat"><div class="num" id="statTotal">0</div><div class="label">Clientes</div><div class="delta" id="deltaTotal"></div></div>
+          <div class="stat"><div class="num" id="statHot">0</div><div class="label">Leads quentes</div><div class="delta" id="deltaHot"></div></div>
+          <div class="stat"><div class="num" id="statFechado">R$ 0</div><div class="label">Fechado (total)</div><div class="delta" id="deltaFechado"></div></div>
+          <div class="stat"><div class="num" id="statConversao">0%</div><div class="label">Taxa de conversão</div><div class="delta" id="deltaConversao"></div></div>
+          <div class="stat"><div class="num" id="statImediato">0</div><div class="label">Prazo imediato</div><div class="delta" id="deltaImediato"></div></div>
+        </div>
+        <div class="stats-page stats">
+          <div class="stat"><div class="num" id="statDespPessoal">R$ 0</div><div class="label">Despesa pessoal (mês)</div></div>
+          <div class="stat"><div class="num" id="statDespEmpresa">R$ 0</div><div class="label">Despesa empresa (mês)</div></div>
+          <div class="stat"><div class="num" id="statDespTotal">R$ 0</div><div class="label">Total despesas (mês)</div></div>
+        </div>
+      </div>
+      <div class="stats-dots" id="statsDots">
+        <span class="dot-ind active" data-page="0"></span>
+        <span class="dot-ind" data-page="1"></span>
       </div>
 
       <div class="grid2">
@@ -1997,10 +2021,24 @@
 
   async function loadPainel(){
     renderStats();
-    await Promise.all([loadAllTarefas(), loadAllGravacoes()]);
+    await Promise.all([loadAllTarefas(), loadAllGravacoes(), loadPainelDespesas()]);
     renderAttentionPanel();
     renderAgendaPreview();
     renderPainelTable();
+  }
+
+  async function loadPainelDespesas(){
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const end = new Date(now.getFullYear(), now.getMonth()+1, 1).toISOString();
+    const { data, error } = await supabaseClient.from('despesas').select('valor,tipo')
+      .gte('data_hora', start).lt('data_hora', end);
+    if(error){ console.error('Erro ao carregar despesas do painel:', error); return; }
+    const totalPessoal = data.filter(d => d.tipo === 'pessoal').reduce((s,d) => s + Number(d.valor), 0);
+    const totalEmpresa = data.filter(d => d.tipo === 'empresa').reduce((s,d) => s + Number(d.valor), 0);
+    document.getElementById('statDespPessoal').textContent = totalPessoal.toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
+    document.getElementById('statDespEmpresa').textContent = totalEmpresa.toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
+    document.getElementById('statDespTotal').textContent = (totalPessoal+totalEmpresa).toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
   }
 
   function renderAttentionPanel(){
@@ -2132,6 +2170,13 @@
   });
   document.getElementById('sidebarBackdrop').addEventListener('click', closeMobileMenu);
   document.querySelectorAll('.side-link').forEach(btn => btn.addEventListener('click', closeMobileMenu));
+
+  const statsSwipeEl = document.getElementById('statsSwipe');
+  const statsDotEls = document.querySelectorAll('#statsDots .dot-ind');
+  statsSwipeEl.addEventListener('scroll', () => {
+    const page = Math.round(statsSwipeEl.scrollLeft / statsSwipeEl.clientWidth);
+    statsDotEls.forEach((d, i) => d.classList.toggle('active', i === page));
+  });
   document.getElementById('clientesSearch').addEventListener('input', (e) => { clientesSearchTerm = e.target.value; renderClientes(); });
 
   [document.getElementById('detailOverlay'), document.getElementById('newLeadOverlay'), document.getElementById('agendaOverlay'), document.getElementById('orcamentoOverlay'), document.getElementById('tarefaOverlay'), document.getElementById('despesaOverlay')].forEach(ov => {
