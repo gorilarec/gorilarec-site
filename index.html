@@ -49,6 +49,9 @@
   nav, .hero, .about, .services, .pitch, .work, .contact, footer{
     position:relative; z-index:2;
   }
+  @media(max-width:900px){
+    body::before{display:none;}
+  }
   .display{
     font-family:'Bebas Neue', sans-serif;
     letter-spacing:0.02em;
@@ -200,8 +203,9 @@
   .mobile-scrub-bar{display:none;}
   @media(max-width:900px){
     .mobile-scrub-bar{
-      display:block; position:relative;
-      width:44%; margin:22px 6vw 0 auto;
+      display:block; position:absolute;
+      top:calc(100vw * 1.25 + 14px); right:6vw;
+      width:44%; z-index:3;
     }
     .mobile-scrub-bar input[type=range]{
       -webkit-appearance:none; appearance:none;
