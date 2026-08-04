@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GORILAREC — Direção de Fotografia & Vídeo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -204,8 +205,14 @@
   .mobile-scrub-bar{display:none;}
   @media(max-width:900px){
     .mobile-scrub-bar{
-      display:block; position:relative;
-      width:56%; margin:20px auto 24px auto;
+      display:block;
+      width:60%; margin:28px auto 56px auto;
+      text-align:center;
+    }
+    .scrub-hint{
+      display:block; margin-bottom:6px;
+      font-size:9px; letter-spacing:0.1em; text-transform:uppercase;
+      color:rgba(237,230,216,0.4);
     }
     .mobile-scrub-bar input[type=range]{
       -webkit-appearance:none; appearance:none;
@@ -538,6 +545,7 @@
       <span class="line anim-in" style="animation-delay:0.92s;">enquadramento</span>
     </h1>
     <div class="mobile-scrub-bar">
+      <span class="scrub-hint mono">arraste</span>
       <input type="range" id="cameraScrubSlider" min="0" max="1000" value="0" aria-label="Arraste para montar a câmera">
     </div>
     <div class="hero-sub anim-in" style="animation-delay:1.05s;">
