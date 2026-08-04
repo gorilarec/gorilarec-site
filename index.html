@@ -51,6 +51,7 @@
   }
   @media(max-width:900px){
     body::before{display:none;}
+    body::after{position:absolute;}
   }
   .display{
     font-family:'Bebas Neue', sans-serif;
@@ -203,9 +204,8 @@
   .mobile-scrub-bar{display:none;}
   @media(max-width:900px){
     .mobile-scrub-bar{
-      display:block; position:absolute;
-      top:calc(100vw * 1.25 + 14px); right:6vw;
-      width:44%; z-index:3;
+      display:block; position:relative;
+      width:56%; margin:20px auto 24px auto;
     }
     .mobile-scrub-bar input[type=range]{
       -webkit-appearance:none; appearance:none;
@@ -537,6 +537,9 @@
       <span class="line anim-in" style="animation-delay:0.82s;">merece um <span class="accent">bom</span></span><br>
       <span class="line anim-in" style="animation-delay:0.92s;">enquadramento</span>
     </h1>
+    <div class="mobile-scrub-bar">
+      <input type="range" id="cameraScrubSlider" min="0" max="1000" value="0" aria-label="Arraste para montar a câmera">
+    </div>
     <div class="hero-sub anim-in" style="animation-delay:1.05s;">
       <p>Produção audiovisual para marcas que querem ser lembradas — do roteiro ao corte final, com direção autoral em cada plano.</p>
       <div class="timecode mono">00:00:12:04 — BELO HORIZONTE, BR</div>
@@ -545,9 +548,6 @@
   <div class="hero-photo hero-camera-hover" id="heroCameraHover">
     <img src="videos/camera-fx30-poster.jpg?v=3" alt="Câmera Sony FX30 desmontada">
     <video src="videos/camera-fx30-assembly.mp4?v=2" muted playsinline preload="auto"></video>
-  </div>
-  <div class="mobile-scrub-bar">
-    <input type="range" id="cameraScrubSlider" min="0" max="1000" value="0" aria-label="Arraste para montar a câmera">
   </div>
 </section>
 
