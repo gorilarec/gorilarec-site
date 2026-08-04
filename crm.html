@@ -144,19 +144,47 @@
   #logoutBtn.btn{justify-content:flex-start; gap:10px; display:flex; align-items:center;}
   .main-area{flex:1; min-width:0;}
 
+  .mobile-topbar{display:none;}
+  .sidebar-backdrop{display:none;}
+
   @media(max-width:760px){
+    .mobile-topbar{
+      display:flex; align-items:center; justify-content:space-between;
+      position:sticky; top:0; z-index:30;
+      background:var(--bg); border-bottom:1px solid var(--line);
+      padding:14px 16px;
+    }
+    .mobile-topbar .logo{font-size:19px;}
+    .hamburger-btn{
+      background:none; border:none; color:var(--cream);
+      font-size:22px; line-height:1; cursor:pointer; padding:4px 8px;
+    }
+
     .app-shell{flex-direction:column;}
-    .sidebar{width:100% !important; height:auto; position:static; flex-direction:row; overflow-x:auto; padding:14px !important; align-items:center;}
-    .sidebar .logo{margin-bottom:0; margin-right:12px;}
+    .sidebar{
+      position:fixed; top:0; left:0; height:100vh; width:250px !important;
+      max-width:80vw; flex-direction:column; overflow-y:auto; overflow-x:hidden;
+      padding:24px 18px !important; align-items:stretch;
+      transform:translateX(-100%); transition:transform 0.25s ease;
+      z-index:100; background:var(--bg-soft); box-shadow:var(--shadow);
+    }
+    .sidebar.mobile-open{transform:translateX(0);}
     .sidebar-pin{display:none;}
-    .navgroup{margin-bottom:0; display:flex; align-items:center;}
-    .navgroup-label{display:none;}
-    .side-nav{flex-direction:row;}
+    .sidebar .logo{margin-bottom:20px; margin-right:0;}
+    .navgroup{margin-bottom:14px; display:block;}
+    .navgroup-label{display:block;}
+    .side-nav{flex-direction:column;}
     .logo-short{display:none !important;}
     .full-label{opacity:1 !important; max-width:none !important;}
     .side-link.active{color:var(--amber); background:rgba(var(--amber-rgb),0.08); border-left-color:var(--amber);}
-    #themeToggleBtn{margin-top:0 !important; margin-left:auto;}
-    #logoutBtn{margin-top:0 !important; margin-left:8px;}
+    #themeToggleBtn{margin-top:16px !important; margin-left:0;}
+    #logoutBtn{margin-top:8px !important; margin-left:0;}
+
+    .sidebar-backdrop{
+      display:block; position:fixed; inset:0; background:rgba(0,0,0,0.5);
+      z-index:90; opacity:0; pointer-events:none; transition:opacity 0.25s ease;
+    }
+    .sidebar-backdrop.show{opacity:1; pointer-events:auto;}
   }
 
   /* FILTROS */
@@ -254,6 +282,15 @@
   .prio-dot.baixa{background:rgba(var(--cream-rgb),0.3);}
   .tarefa-item .sub-info{display:flex; flex-direction:column; gap:2px; flex:1;}
 
+  .desp-item{display:flex; align-items:center; gap:12px; border:1px solid var(--line); padding:12px 16px; margin-bottom:8px; border-radius:8px; font-size:13px;}
+  .desp-item .sub-info{display:flex; flex-direction:column; gap:2px; flex:1;}
+  .desp-item .titulo{font-weight:500;}
+  .desp-item .meta{font-size:11px; color:rgba(var(--cream-rgb),0.45); font-family:'JetBrains Mono',monospace;}
+  .desp-item .valor{font-family:'JetBrains Mono',monospace; font-size:14px; white-space:nowrap;}
+  .desp-item .valor.pessoal{color:var(--teal);}
+  .desp-item .valor.empresa{color:var(--amber);}
+  .desp-item .del-btn{background:none; border:1px solid var(--line); color:var(--red); cursor:pointer; width:28px; height:28px; border-radius:6px; flex-shrink:0;}
+
   .row-inline{display:flex; gap:8px;}
   .row-inline input, .row-inline textarea{flex:1;}
 
@@ -319,6 +356,12 @@
 </div>
 
 <div id="panel">
+<div class="mobile-topbar">
+  <button class="hamburger-btn" id="hamburgerBtn" aria-label="Abrir menu">☰</button>
+  <div class="logo display">GORILA<span style="color:var(--amber);">REC</span></div>
+  <span style="width:30px;"></span>
+</div>
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 <div class="app-shell">
   <aside class="sidebar" id="sidebar">
     <button class="sidebar-pin" id="sidebarPin" title="Fixar menu aberto">≡</button>
@@ -342,6 +385,12 @@
         <button class="side-link" id="navAgendaBtn"><span class="full-label">Agenda</span></button>
         <button class="side-link" id="navOrcamentosBtn"><span class="full-label">Orçamentos</span></button>
         <button class="side-link" id="navTarefasBtn"><span class="full-label">Tarefas</span></button>
+      </nav>
+    </div>
+    <div class="navgroup">
+      <div class="navgroup-label full-label">Financeiro</div>
+      <nav class="side-nav">
+        <button class="side-link" id="navDespesasBtn"><span class="full-label">Despesas</span></button>
       </nav>
     </div>
     <button class="btn ghost small" id="themeToggleBtn" style="margin-top:auto;"><span class="full-label" id="themeToggleLabel">MODO CLARO</span><span class="logo-short">☀</span></button>
@@ -485,6 +534,34 @@
         <b>Nenhuma tarefa aqui.</b> Cria uma nova, com ou sem vincular a um cliente.
       </div>
     </div>
+
+    <div id="despesasSection" style="display:none;">
+      <div class="toolbar">
+        <h1 class="display">Despesas</h1>
+        <button class="btn" id="newDespesaBtn">+ NOVA DESPESA</button>
+      </div>
+
+      <div class="stats" style="grid-template-columns:repeat(3,1fr); margin-bottom:24px;">
+        <div class="stat"><div class="num" id="despTotalPessoal">R$ 0</div><div class="label">Pessoal (mês)</div></div>
+        <div class="stat"><div class="num" id="despTotalEmpresa">R$ 0</div><div class="label">Empresa (mês)</div></div>
+        <div class="stat"><div class="num" id="despTotalGeral">R$ 0</div><div class="label">Total (mês)</div></div>
+      </div>
+
+      <div class="grid-filters">
+        <input type="month" id="despMesFiltro">
+        <select id="despTipoFiltro">
+          <option value="todas">Todas</option>
+          <option value="pessoal">Pessoal</option>
+          <option value="empresa">Empresa</option>
+        </select>
+      </div>
+
+      <div id="despesasList"></div>
+
+      <div class="empty-note" id="despesasEmptyNote" style="display:none;">
+        <b>Nenhuma despesa nesse mês.</b> Lança um gasto novo, pessoal ou da empresa.
+      </div>
+    </div>
   </main>
   </div>
 </div>
@@ -575,10 +652,43 @@
         <option value="alta">Alta</option>
       </select>
     </div>
+    <div class="field"><label>Lembrar</label>
+      <select id="tfLembrete">
+        <option value="60">1 hora antes</option>
+        <option value="180">3 horas antes</option>
+        <option value="1440" selected>1 dia antes</option>
+      </select>
+    </div>
     <div class="field"><label>Cliente (opcional)</label>
       <select id="tfLead"><option value="">Nenhum — tarefa geral</option></select>
     </div>
     <button class="btn" id="tfSaveBtn" style="width:100%; margin-top:8px;">SALVAR TAREFA</button>
+  </div>
+</div>
+
+<!-- MODAL DESPESA -->
+<div class="overlay" id="despesaOverlay">
+  <div class="modal" id="despesaModal" style="max-width:480px;">
+    <button class="modal-close" id="despesaClose">×</button>
+    <h2 class="display">Nova despesa</h2>
+    <span class="mono tiny">PESSOAL OU DA EMPRESA</span>
+
+    <div class="field"><label>Descrição</label><input type="text" id="dpDescricao" placeholder="Ex: gasolina, equipamento, aluguel..."></div>
+    <div class="field-row">
+      <div class="field"><label>Categoria</label><input type="text" id="dpCategoria" placeholder="Ex: transporte, equipamento..."></div>
+      <div class="field"><label>Tipo</label>
+        <select id="dpTipo">
+          <option value="pessoal">Pessoal</option>
+          <option value="empresa">Empresa</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Valor (R$)</label><input type="number" id="dpValor" step="0.01"></div>
+      <div class="field"><label>Data</label><input type="date" id="dpData"></div>
+    </div>
+    <div class="field"><label>Hora</label><input type="time" id="dpHora"></div>
+    <button class="btn" id="dpSaveBtn" style="width:100%; margin-top:8px;">SALVAR DESPESA</button>
   </div>
 </div>
 
@@ -1180,6 +1290,7 @@
     document.getElementById('tfData').value = '';
     document.getElementById('tfHora').value = '';
     document.getElementById('tfPrioridade').value = 'media';
+    document.getElementById('tfLembrete').value = '1440';
     fillTarefaLeadSelect('');
     document.getElementById('tarefaOverlay').classList.add('open');
   }
@@ -1193,6 +1304,7 @@
     document.getElementById('tfData').value = t.data_prevista || '';
     document.getElementById('tfHora').value = t.hora_prevista ? t.hora_prevista.slice(0,5) : '';
     document.getElementById('tfPrioridade').value = t.prioridade || 'media';
+    document.getElementById('tfLembrete').value = String(t.lembrete_minutos || 1440);
     fillTarefaLeadSelect(t.lead_id || '');
     document.getElementById('tarefaOverlay').classList.add('open');
   }
@@ -1206,6 +1318,7 @@
       data_prevista: document.getElementById('tfData').value || null,
       hora_prevista: document.getElementById('tfHora').value || null,
       prioridade: document.getElementById('tfPrioridade').value,
+      lembrete_minutos: parseInt(document.getElementById('tfLembrete').value, 10),
       lead_id: document.getElementById('tfLead').value || null,
     };
     let error;
@@ -1214,6 +1327,92 @@
     if(error){ alert('Erro ao salvar tarefa: ' + error.message); return; }
     document.getElementById('tarefaOverlay').classList.remove('open');
     loadAllTarefas();
+  }
+
+  // ---------- DESPESAS ----------
+  let allDespesas = [];
+  let despesaTipoFiltro = 'todas';
+
+  function currentMonthStr(){
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  }
+
+  async function loadDespesas(){
+    const monthInput = document.getElementById('despMesFiltro');
+    if(!monthInput.value) monthInput.value = currentMonthStr();
+    const [y, m] = monthInput.value.split('-').map(Number);
+    const start = new Date(y, m-1, 1).toISOString();
+    const end = new Date(y, m, 1).toISOString();
+
+    const { data, error } = await supabaseClient.from('despesas').select('*')
+      .gte('data_hora', start).lt('data_hora', end)
+      .order('data_hora', {ascending:false});
+    if(error){ console.error('Erro ao carregar despesas:', error); allDespesas = []; }
+    else allDespesas = data;
+    renderDespesas();
+  }
+
+  function renderDespesas(){
+    let items = allDespesas;
+    if(despesaTipoFiltro !== 'todas') items = items.filter(d => d.tipo === despesaTipoFiltro);
+
+    const totalPessoal = allDespesas.filter(d => d.tipo === 'pessoal').reduce((s,d) => s + Number(d.valor), 0);
+    const totalEmpresa = allDespesas.filter(d => d.tipo === 'empresa').reduce((s,d) => s + Number(d.valor), 0);
+    document.getElementById('despTotalPessoal').textContent = totalPessoal.toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
+    document.getElementById('despTotalEmpresa').textContent = totalEmpresa.toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
+    document.getElementById('despTotalGeral').textContent = (totalPessoal+totalEmpresa).toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
+
+    document.getElementById('despesasEmptyNote').style.display = items.length === 0 ? 'block' : 'none';
+    const wrap = document.getElementById('despesasList');
+    wrap.innerHTML = items.map(d => `
+      <div class="desp-item" data-id="${d.id}">
+        <div class="sub-info">
+          <span class="titulo">${escapeHtml(d.descricao)}</span>
+          <span class="meta">${d.categoria ? escapeHtml(d.categoria) + ' · ' : ''}${new Date(d.data_hora).toLocaleString('pt-BR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'})}</span>
+        </div>
+        <span class="tag ${d.tipo === 'empresa' ? 'warm' : 'cold'}">${d.tipo === 'empresa' ? 'EMPRESA' : 'PESSOAL'}</span>
+        <span class="valor ${d.tipo}">${money(d.valor)}</span>
+        <button class="del-btn" data-id="${d.id}">×</button>
+      </div>`).join('');
+
+    wrap.querySelectorAll('.del-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if(!confirm('Apagar essa despesa?')) return;
+        await supabaseClient.from('despesas').delete().eq('id', btn.dataset.id);
+        loadDespesas();
+      });
+    });
+  }
+
+  function openNewDespesa(){
+    document.getElementById('dpDescricao').value = '';
+    document.getElementById('dpCategoria').value = '';
+    document.getElementById('dpTipo').value = 'pessoal';
+    document.getElementById('dpValor').value = '';
+    const now = new Date();
+    document.getElementById('dpData').value = now.toISOString().slice(0,10);
+    document.getElementById('dpHora').value = now.toTimeString().slice(0,5);
+    document.getElementById('despesaOverlay').classList.add('open');
+  }
+
+  async function saveDespesa(){
+    const descricao = document.getElementById('dpDescricao').value.trim();
+    const valor = Number(document.getElementById('dpValor').value);
+    if(!descricao || !valor){ alert('Preenche descrição e valor.'); return; }
+    const data = document.getElementById('dpData').value;
+    const hora = document.getElementById('dpHora').value || '00:00';
+    const payload = {
+      descricao,
+      categoria: document.getElementById('dpCategoria').value.trim() || null,
+      tipo: document.getElementById('dpTipo').value,
+      valor,
+      data_hora: new Date(`${data}T${hora}`).toISOString(),
+    };
+    const { error } = await supabaseClient.from('despesas').insert(payload);
+    if(error){ alert('Erro ao salvar despesa: ' + error.message); return; }
+    document.getElementById('despesaOverlay').classList.remove('open');
+    loadDespesas();
   }
 
   function setStatus(text, ok){
@@ -1313,6 +1512,11 @@
       <div class="field-row" style="margin-bottom:14px;">
         <input type="text" id="tarefaTitulo" placeholder="Ex: ligar pra fechar proposta">
         <input type="date" id="tarefaData">
+        <select id="tarefaLembrete">
+          <option value="60">Lembrar 1h antes</option>
+          <option value="180">Lembrar 3h antes</option>
+          <option value="1440" selected>Lembrar 1 dia antes</option>
+        </select>
       </div>
       <button class="btn small" id="tarefaSaveBtn" style="margin-bottom:14px;">ADD TAREFA</button>
       <div id="tarefasList"></div>
@@ -1322,7 +1526,16 @@
         <div class="field"><label>Título</label><input type="text" id="gravTitulo" placeholder="Ex: gravação institucional"></div>
         <div class="field"><label>Data e hora</label><input type="datetime-local" id="gravDataHora"></div>
       </div>
-      <div class="field"><label>Local</label><input type="text" id="gravLocal" placeholder="Endereço ou 'a definir'"></div>
+      <div class="field-row" style="margin-bottom:14px;">
+        <div class="field"><label>Local</label><input type="text" id="gravLocal" placeholder="Endereço ou 'a definir'"></div>
+        <div class="field"><label>Lembrar</label>
+          <select id="gravLembrete">
+            <option value="60">1 hora antes</option>
+            <option value="180">3 horas antes</option>
+            <option value="1440" selected>1 dia antes</option>
+          </select>
+        </div>
+      </div>
       <button class="btn small" id="gravSaveBtn" style="margin-bottom:14px;">MARCAR GRAVAÇÃO</button>
       <div id="gravacoesList"></div>
     `;
@@ -1463,8 +1676,9 @@
   async function addTarefa(leadId){
     const titulo = document.getElementById('tarefaTitulo').value.trim();
     const data_prevista = document.getElementById('tarefaData').value || null;
+    const lembrete_minutos = parseInt(document.getElementById('tarefaLembrete').value, 10);
     if(!titulo) return;
-    const { error } = await supabaseClient.from('tarefas').insert({lead_id: leadId, titulo, data_prevista});
+    const { error } = await supabaseClient.from('tarefas').insert({lead_id: leadId, titulo, data_prevista, lembrete_minutos});
     if(error){ alert('Erro ao salvar tarefa: ' + error.message); return; }
     document.getElementById('tarefaTitulo').value = '';
     document.getElementById('tarefaData').value = '';
@@ -1502,8 +1716,9 @@
     const titulo = document.getElementById('gravTitulo').value.trim() || 'Gravação';
     const dataHora = document.getElementById('gravDataHora').value;
     const local = document.getElementById('gravLocal').value.trim() || null;
+    const lembrete_minutos = parseInt(document.getElementById('gravLembrete').value, 10);
     if(!dataHora){ alert('Preenche data e hora da gravação.'); return; }
-    const { error } = await supabaseClient.from('gravacoes').insert({lead_id: leadId, titulo, data_hora: new Date(dataHora).toISOString(), local});
+    const { error } = await supabaseClient.from('gravacoes').insert({lead_id: leadId, titulo, data_hora: new Date(dataHora).toISOString(), local, lembrete_minutos});
     if(error){ alert('Erro ao marcar gravação: ' + error.message); return; }
     document.getElementById('gravTitulo').value = '';
     document.getElementById('gravDataHora').value = '';
@@ -1724,6 +1939,12 @@
   document.getElementById('tfSaveBtn').addEventListener('click', saveTarefa);
   document.getElementById('tarefaFilter').addEventListener('change', (e) => { tarefaFilterMode = e.target.value; renderTarefasFullList(); });
 
+  document.getElementById('newDespesaBtn').addEventListener('click', openNewDespesa);
+  document.getElementById('despesaClose').addEventListener('click', () => document.getElementById('despesaOverlay').classList.remove('open'));
+  document.getElementById('dpSaveBtn').addEventListener('click', saveDespesa);
+  document.getElementById('despMesFiltro').addEventListener('change', loadDespesas);
+  document.getElementById('despTipoFiltro').addEventListener('change', (e) => { despesaTipoFiltro = e.target.value; renderDespesas(); });
+
   document.getElementById('viewGridBtn').addEventListener('click', () => {
     currentView = 'grid';
     document.getElementById('viewGridBtn').classList.add('active');
@@ -1745,8 +1966,8 @@
 
   function showSection(name){
     currentSection = name;
-    ['navPainelBtn','navLeadsBtn','navClientesBtn','navOrcamentosBtn','navTarefasBtn'].forEach(id => document.getElementById(id).classList.remove('active'));
-    ['painelSection','leadsSection','clientesSection','orcamentosSection','tarefasSection'].forEach(id => document.getElementById(id).style.display = 'none');
+    ['navPainelBtn','navLeadsBtn','navClientesBtn','navOrcamentosBtn','navTarefasBtn','navDespesasBtn'].forEach(id => document.getElementById(id).classList.remove('active'));
+    ['painelSection','leadsSection','clientesSection','orcamentosSection','tarefasSection','despesasSection'].forEach(id => document.getElementById(id).style.display = 'none');
     if(name === 'painel'){
       document.getElementById('navPainelBtn').classList.add('active');
       document.getElementById('painelSection').style.display = 'block';
@@ -1767,6 +1988,10 @@
       document.getElementById('navTarefasBtn').classList.add('active');
       document.getElementById('tarefasSection').style.display = 'block';
       loadAllTarefas();
+    } else if(name === 'despesas'){
+      document.getElementById('navDespesasBtn').classList.add('active');
+      document.getElementById('despesasSection').style.display = 'block';
+      loadDespesas();
     }
   }
 
@@ -1890,14 +2115,26 @@
   document.getElementById('navLeadsBtn').addEventListener('click', () => showSection('leads'));
   document.getElementById('navClientesBtn').addEventListener('click', () => showSection('clientes'));
   document.getElementById('navTarefasBtn').addEventListener('click', () => showSection('tarefas'));
+  document.getElementById('navDespesasBtn').addEventListener('click', () => showSection('despesas'));
   document.getElementById('navOrcamentosBtn').addEventListener('click', () => showSection('orcamentos'));
   document.getElementById('navAgendaBtn').addEventListener('click', openAgenda);
   document.getElementById('sidebarPin').addEventListener('click', () => {
     document.getElementById('sidebar').classList.toggle('pinned');
   });
+
+  function closeMobileMenu(){
+    document.getElementById('sidebar').classList.remove('mobile-open');
+    document.getElementById('sidebarBackdrop').classList.remove('show');
+  }
+  document.getElementById('hamburgerBtn').addEventListener('click', () => {
+    document.getElementById('sidebar').classList.add('mobile-open');
+    document.getElementById('sidebarBackdrop').classList.add('show');
+  });
+  document.getElementById('sidebarBackdrop').addEventListener('click', closeMobileMenu);
+  document.querySelectorAll('.side-link').forEach(btn => btn.addEventListener('click', closeMobileMenu));
   document.getElementById('clientesSearch').addEventListener('input', (e) => { clientesSearchTerm = e.target.value; renderClientes(); });
 
-  [document.getElementById('detailOverlay'), document.getElementById('newLeadOverlay'), document.getElementById('agendaOverlay'), document.getElementById('orcamentoOverlay'), document.getElementById('tarefaOverlay')].forEach(ov => {
+  [document.getElementById('detailOverlay'), document.getElementById('newLeadOverlay'), document.getElementById('agendaOverlay'), document.getElementById('orcamentoOverlay'), document.getElementById('tarefaOverlay'), document.getElementById('despesaOverlay')].forEach(ov => {
     ov.addEventListener('click', e => { if(e.target === ov){ ov.classList.remove('open'); } });
   });
 </script>
