@@ -95,7 +95,7 @@
     clip-path:inset(0 0 0 100%);
     animation:photoWipe 1.15s cubic-bezier(0.65,0,0.15,1) 0.15s forwards;
   }
-  .hero-camera-hover{cursor:pointer;}
+  .hero-camera-hover{cursor:pointer; touch-action:pan-y;}
   .hero-camera-hover video{
     position:absolute; inset:0;
     width:100%; height:100%; object-fit:cover;
@@ -670,6 +670,7 @@
   function unlock(){
     if(unlocked) return;
     unlocked = true;
+    video.load();
     const p = video.play();
     if(p && p.then) p.then(() => video.pause()).catch(() => {});
     else video.pause();
