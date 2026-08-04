@@ -645,6 +645,7 @@
 (function(){
   const wrap = document.getElementById('heroCameraHover');
   if(!wrap) return;
+  const hero = wrap.closest('.hero') || wrap;
   const video = wrap.querySelector('video');
   video.pause();
 
@@ -654,7 +655,7 @@
   function applyScrub(){
     rafId = null;
     if(pendingX === null || !video.duration || isNaN(video.duration)) return;
-    const rect = wrap.getBoundingClientRect();
+    const rect = hero.getBoundingClientRect();
     let frac = (pendingX - rect.left) / rect.width;
     frac = Math.max(0, Math.min(1, frac));
     video.currentTime = frac * video.duration;
@@ -665,14 +666,24 @@
     if(rafId === null) rafId = requestAnimationFrame(applyScrub);
   }
 
-  wrap.addEventListener('mouseenter', () => wrap.classList.add('playing'));
-  wrap.addEventListener('mousemove', (e) => scrub(e.clientX));
-  wrap.addEventListener('mouseleave', () => {
+  let unlocked = false;
+  function unlock(){
+    if(unlocked) return;
+    unlocked = true;
+    const p = video.play();
+    if(p && p.then) p.then(() => video.pause()).catch(() => {});
+    else video.pause();
+  }
+
+  hero.addEventListener('mouseenter', () => { unlock(); wrap.classList.add('playing'); });
+  hero.addEventListener('mousemove', (e) => scrub(e.clientX));
+  hero.addEventListener('mouseleave', () => {
     wrap.classList.remove('playing');
     video.currentTime = 0;
   });
 
   wrap.addEventListener('touchstart', (e) => {
+    unlock();
     wrap.classList.add('playing');
     scrub(e.touches[0].clientX);
   }, {passive:true});
