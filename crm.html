@@ -86,11 +86,17 @@
 
   main{padding:32px 4vw 80px;}
 
-  .stats{display:grid; grid-template-columns:repeat(5,1fr); gap:1px; background:var(--line); margin-bottom:40px; border:1px solid var(--line); border-radius:10px; overflow:hidden;}
-  .stats-swipe{display:flex; gap:16px; margin-bottom:40px;}
-  .stats-swipe .stats{margin-bottom:0; flex:1; min-width:0;}
+  .stats{display:grid; grid-template-columns:repeat(5,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:10px; overflow:hidden;}
+  .stats-subtitle{font-size:11px; letter-spacing:0.1em; color:var(--amber); margin-bottom:12px;}
+  .stats-swipe{
+    display:flex; overflow-x:auto; scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch; gap:0;
+  }
+  .stats-swipe .stats{flex:0 0 100%; scroll-snap-align:start; margin-bottom:0;}
   .stats-swipe .stats:last-child{grid-template-columns:repeat(3,1fr);}
-  .stats-dots{display:none;}
+  .stats-dots{display:flex; justify-content:center; gap:6px; margin:12px 0 32px;}
+  .stats-dots .dot-ind{width:6px; height:6px; border-radius:50%; background:var(--line); cursor:pointer; transition:background 0.2s;}
+  .stats-dots .dot-ind.active{background:var(--amber);}
   .stat{background:var(--bg-soft); padding:20px;}
   .stat .num{font-family:'Bebas Neue',sans-serif; font-size:32px; color:var(--amber); line-height:1;}
   .stat .label{font-size:10px; color:rgba(var(--cream-rgb),0.45); letter-spacing:0.08em; margin-top:6px; text-transform:uppercase;}
@@ -325,15 +331,6 @@
 
   @media(max-width:760px){
     .stats{grid-template-columns:repeat(2,1fr);}
-    .stats-swipe{
-      overflow-x:auto; scroll-snap-type:x mandatory;
-      -webkit-overflow-scrolling:touch; gap:0; margin-bottom:0;
-    }
-    .stats-swipe .stats{flex:0 0 100%; scroll-snap-align:start;}
-    .stats-swipe .stats:last-child{grid-template-columns:repeat(2,1fr);}
-    .stats-dots{display:flex; justify-content:center; gap:6px; margin:12px 0 32px;}
-    .stats-dots .dot-ind{width:6px; height:6px; border-radius:50%; background:var(--line); transition:background 0.2s;}
-    .stats-dots .dot-ind.active{background:var(--amber);}
     .profile-grid{grid-template-columns:repeat(2,1fr);}
     table, thead, tbody, th, td, tr{display:block;}
     thead{display:none;}
@@ -420,9 +417,10 @@
 
   <main>
     <div id="painelSection">
-      <div class="toolbar">
+      <div class="toolbar" style="margin-bottom:4px;">
         <h1 class="display">Visão geral</h1>
       </div>
+      <div class="stats-subtitle mono" id="statsSubtitle">CLIENTES/LEADS</div>
 
       <div class="stats-swipe" id="statsSwipe">
         <div class="stats-page stats">
@@ -2173,9 +2171,18 @@
 
   const statsSwipeEl = document.getElementById('statsSwipe');
   const statsDotEls = document.querySelectorAll('#statsDots .dot-ind');
+  const statsSubtitleEl = document.getElementById('statsSubtitle');
+  const statsLabels = ['CLIENTES/LEADS', 'DESPESAS'];
   statsSwipeEl.addEventListener('scroll', () => {
     const page = Math.round(statsSwipeEl.scrollLeft / statsSwipeEl.clientWidth);
     statsDotEls.forEach((d, i) => d.classList.toggle('active', i === page));
+    statsSubtitleEl.textContent = statsLabels[page] || statsLabels[0];
+  });
+  statsDotEls.forEach(dot => {
+    dot.addEventListener('click', () => {
+      const page = Number(dot.dataset.page);
+      statsSwipeEl.scrollTo({left: page * statsSwipeEl.clientWidth, behavior: 'smooth'});
+    });
   });
   document.getElementById('clientesSearch').addEventListener('input', (e) => { clientesSearchTerm = e.target.value; renderClientes(); });
 
