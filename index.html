@@ -190,6 +190,25 @@
     .hero-content{padding:150px 6vw 60px; max-width:100%;}
   }
 
+  .drag-hint{display:none;}
+  @media(max-width:900px){
+    .drag-hint{
+      display:flex; align-items:center; gap:8px;
+      position:absolute; left:50%; bottom:24px; transform:translateX(-50%);
+      font-size:11px; letter-spacing:0.08em; color:rgba(237,230,216,0.75);
+      white-space:nowrap; pointer-events:none; z-index:5;
+      animation:hintPulse 1.8s ease-in-out infinite, hintFadeOut 0.6s ease forwards 4.5s;
+    }
+    .hero-camera-hover.playing .drag-hint{display:none;}
+  }
+  @keyframes hintPulse{
+    0%,100%{opacity:0.4; transform:translateX(-50%) translateX(0);}
+    50%{opacity:0.9; transform:translateX(-50%) translateX(4px);}
+  }
+  @keyframes hintFadeOut{
+    to{opacity:0; visibility:hidden;}
+  }
+
   /* SERVICES */
   .services{
     padding:140px 6vw;
@@ -500,8 +519,9 @@
     </div>
   </div>
   <div class="hero-photo hero-camera-hover" id="heroCameraHover">
-    <img src="videos/camera-fx30-poster.png?v=2" alt="Câmera Sony FX30 desmontada">
+    <img src="videos/camera-fx30-poster.jpg?v=3" alt="Câmera Sony FX30 desmontada">
     <video src="videos/camera-fx30-assembly.mp4?v=2" muted playsinline preload="metadata"></video>
+    <div class="drag-hint mono">← arraste para montar →</div>
   </div>
 </section>
 
