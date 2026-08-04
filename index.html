@@ -194,12 +194,13 @@
       background:linear-gradient(180deg, var(--bg) 0%, rgba(18,17,16,0.35) 30%, rgba(18,17,16,0.85) 100%);
     }
     .hero-content{padding:150px 6vw 60px; max-width:100%;}
+    .hero-camera-hover{pointer-events:none;}
   }
 
   .mobile-scrub-bar{display:none;}
   @media(max-width:900px){
     .mobile-scrub-bar{
-      display:block;
+      display:block; pointer-events:auto;
       position:absolute; right:6vw; bottom:18px;
       width:34%; z-index:5;
     }
