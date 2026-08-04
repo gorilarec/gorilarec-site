@@ -200,9 +200,8 @@
   .mobile-scrub-bar{display:none;}
   @media(max-width:900px){
     .mobile-scrub-bar{
-      display:block; pointer-events:auto;
-      position:absolute; right:6vw; bottom:18px;
-      width:34%; z-index:5;
+      display:block; position:relative;
+      width:44%; margin:22px 6vw 0 auto;
     }
     .mobile-scrub-bar input[type=range]{
       -webkit-appearance:none; appearance:none;
@@ -541,10 +540,10 @@
   </div>
   <div class="hero-photo hero-camera-hover" id="heroCameraHover">
     <img src="videos/camera-fx30-poster.jpg?v=3" alt="Câmera Sony FX30 desmontada">
-    <video src="videos/camera-fx30-assembly.mp4?v=2" muted playsinline preload="metadata"></video>
-    <div class="mobile-scrub-bar">
-      <input type="range" id="cameraScrubSlider" min="0" max="1000" value="0" aria-label="Arraste para montar a câmera">
-    </div>
+    <video src="videos/camera-fx30-assembly.mp4?v=2" muted playsinline preload="auto"></video>
+  </div>
+  <div class="mobile-scrub-bar">
+    <input type="range" id="cameraScrubSlider" min="0" max="1000" value="0" aria-label="Arraste para montar a câmera">
   </div>
 </section>
 
@@ -715,6 +714,9 @@
       unlock();
       wrap.classList.add('playing');
       if(!video.duration || isNaN(video.duration)) return;
+      video.currentTime = (slider.value / 1000) * video.duration;
+    });
+    video.addEventListener('loadedmetadata', () => {
       video.currentTime = (slider.value / 1000) * video.duration;
     });
   }
