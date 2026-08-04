@@ -698,12 +698,15 @@
     else video.pause();
   }
 
-  hero.addEventListener('mouseenter', () => { unlock(); wrap.classList.add('playing'); });
-  hero.addEventListener('mousemove', (e) => scrub(e.clientX));
-  hero.addEventListener('mouseleave', () => {
-    wrap.classList.remove('playing');
-    video.currentTime = 0;
-  });
+  const hasHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  if(hasHover){
+    hero.addEventListener('mouseenter', () => { unlock(); wrap.classList.add('playing'); });
+    hero.addEventListener('mousemove', (e) => scrub(e.clientX));
+    hero.addEventListener('mouseleave', () => {
+      wrap.classList.remove('playing');
+      video.currentTime = 0;
+    });
+  }
 
   const slider = document.getElementById('cameraScrubSlider');
   if(slider){
