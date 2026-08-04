@@ -182,31 +182,50 @@
     font-size:13px; color:rgba(237,230,216,0.55); letter-spacing:0.08em;
   }
   @media(max-width:900px){
-    .hero-photo{width:100%; opacity:0.45;}
-    .hero-photo img{object-position:60% 22%;}
-    .hero-photo::after{
-      background:linear-gradient(180deg, var(--bg) 0%, rgba(18,17,16,0.35) 30%, rgba(18,17,16,0.85) 100%);
+    .hero-photo{
+      position:relative; top:auto; right:auto;
+      width:100%; height:auto; aspect-ratio:16/9;
+      opacity:1; background:#000;
+      clip-path:none; animation:none;
+      margin-top:40px;
     }
-    .hero-content{padding:150px 6vw 60px; max-width:100%;}
+    .hero-photo::after{display:none;}
+    .hero-camera-hover img,
+    .hero-camera-hover video{
+      position:absolute; inset:0;
+      width:100%; height:100%;
+      object-fit:contain; object-position:center;
+      transform:none; filter:none;
+    }
+    .hero-content{padding:150px 6vw 0; max-width:100%;}
   }
 
-  .drag-hint{display:none;}
+  .mobile-scrub{display:none;}
   @media(max-width:900px){
-    .drag-hint{
-      display:flex; align-items:center; gap:8px;
-      position:absolute; left:50%; bottom:24px; transform:translateX(-50%);
-      font-size:11px; letter-spacing:0.08em; color:rgba(237,230,216,0.75);
-      white-space:nowrap; pointer-events:none; z-index:5;
-      animation:hintPulse 1.8s ease-in-out infinite, hintFadeOut 0.6s ease forwards 4.5s;
+    .mobile-scrub{
+      display:flex; flex-direction:column; gap:10px;
+      padding:16px 6vw 50px;
     }
-    .hero-camera-hover.playing .drag-hint{display:none;}
-  }
-  @keyframes hintPulse{
-    0%,100%{opacity:0.4; transform:translateX(-50%) translateX(0);}
-    50%{opacity:0.9; transform:translateX(-50%) translateX(4px);}
-  }
-  @keyframes hintFadeOut{
-    to{opacity:0; visibility:hidden;}
+    .mobile-scrub .label{
+      font-size:11px; letter-spacing:0.08em; color:rgba(237,230,216,0.55);
+    }
+    .mobile-scrub input[type=range]{
+      -webkit-appearance:none; appearance:none;
+      width:100%; height:4px; border-radius:2px;
+      background:var(--line); outline:none;
+      cursor:pointer;
+    }
+    .mobile-scrub input[type=range]::-webkit-slider-thumb{
+      -webkit-appearance:none; appearance:none;
+      width:20px; height:20px; border-radius:50%;
+      background:var(--amber); border:2px solid var(--bg);
+      box-shadow:0 0 0 1px var(--amber);
+    }
+    .mobile-scrub input[type=range]::-moz-range-thumb{
+      width:20px; height:20px; border-radius:50%;
+      background:var(--amber); border:2px solid var(--bg);
+      box-shadow:0 0 0 1px var(--amber);
+    }
   }
 
   /* SERVICES */
@@ -521,7 +540,10 @@
   <div class="hero-photo hero-camera-hover" id="heroCameraHover">
     <img src="videos/camera-fx30-poster.jpg?v=3" alt="Câmera Sony FX30 desmontada">
     <video src="videos/camera-fx30-assembly.mp4?v=2" muted playsinline preload="metadata"></video>
-    <div class="drag-hint mono">← arraste para montar →</div>
+  </div>
+  <div class="mobile-scrub">
+    <span class="label mono">ARRASTE PARA MONTAR A CÂMERA</span>
+    <input type="range" id="cameraScrubSlider" min="0" max="1000" value="0" aria-label="Arraste para montar a câmera">
   </div>
 </section>
 
@@ -683,16 +705,15 @@
     video.currentTime = 0;
   });
 
-  wrap.addEventListener('touchstart', (e) => {
-    unlock();
-    wrap.classList.add('playing');
-    scrub(e.touches[0].clientX);
-  }, {passive:true});
-  wrap.addEventListener('touchmove', (e) => scrub(e.touches[0].clientX), {passive:true});
-  wrap.addEventListener('touchend', () => {
-    wrap.classList.remove('playing');
-    video.currentTime = 0;
-  });
+  const slider = document.getElementById('cameraScrubSlider');
+  if(slider){
+    slider.addEventListener('input', () => {
+      unlock();
+      wrap.classList.add('playing');
+      if(!video.duration || isNaN(video.duration)) return;
+      video.currentTime = (slider.value / 1000) * video.duration;
+    });
+  }
 })();
 </script>
 
