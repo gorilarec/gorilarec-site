@@ -1189,6 +1189,52 @@
     document.getElementById('orcLeadsDatalist').innerHTML = leads.map(l => `<option value="${escapeHtml(l.nome)}">`).join('');
   }
 
+  // ---------- RASCUNHO AUTOMÁTICO DO ORÇAMENTO ----------
+  const ORC_DRAFT_KEY = 'gorilarec_orcamento_rascunho';
+
+  function currentOrcData(){
+    return {
+      cliente: document.getElementById('orcCliente').value,
+      validade: document.getElementById('orcValidade').value,
+      desconto: document.getElementById('orcDesconto').value,
+      status: document.getElementById('orcStatus').value,
+      obs: document.getElementById('orcObs').value,
+      itens: [...document.querySelectorAll('#orcItensRows .orc-item-row')].map(row => ({
+        descricao: row.querySelector('.orcDesc').value,
+        quantidade: row.querySelector('.orcQtd').value,
+        valor: row.querySelector('.orcValor').value,
+      })),
+    };
+  }
+
+  function orcHasContent(d){
+    return !!(d.cliente.trim() || d.obs.trim() || d.itens.some(i => i.descricao.trim() || i.valor));
+  }
+
+  function saveOrcDraft(){
+    if(orcCurrentId) return; // rascunho só pra orçamento novo
+    const d = currentOrcData();
+    if(orcHasContent(d)) localStorage.setItem(ORC_DRAFT_KEY, JSON.stringify(d));
+    else localStorage.removeItem(ORC_DRAFT_KEY);
+  }
+
+  function clearOrcDraft(){ localStorage.removeItem(ORC_DRAFT_KEY); }
+
+  function applyOrcDraft(d){
+    document.getElementById('orcCliente').value = d.cliente || '';
+    document.getElementById('orcValidade').value = d.validade || '';
+    document.getElementById('orcDesconto').value = d.desconto || 0;
+    document.getElementById('orcStatus').value = d.status || 'rascunho';
+    document.getElementById('orcObs').value = d.obs || '';
+    document.getElementById('orcItensRows').innerHTML = '';
+    (d.itens && d.itens.length ? d.itens : [{descricao:'',quantidade:1,valor:''}]).forEach(orcAddItemRow);
+    recalcOrcTotal();
+  }
+
+  // Salva a cada mudança em qualquer campo do modal de orçamento.
+  document.getElementById('orcamentoModal').addEventListener('input', saveOrcDraft);
+  document.getElementById('orcamentoModal').addEventListener('change', saveOrcDraft);
+
   function openNewOrcamento(){
     orcCurrentId = null;
     document.getElementById('orcamentoTitle').textContent = 'Novo orçamento';
@@ -1202,6 +1248,18 @@
     orcAddItemRow();
     recalcOrcTotal();
     fillLeadsDatalist();
+
+    const raw = localStorage.getItem(ORC_DRAFT_KEY);
+    if(raw){
+      try{
+        const d = JSON.parse(raw);
+        if(orcHasContent(d)){
+          if(confirm('Tem um orçamento não terminado guardado. Continuar de onde parou?')) applyOrcDraft(d);
+          else clearOrcDraft();
+        }
+      }catch(e){ clearOrcDraft(); }
+    }
+
     document.getElementById('orcamentoOverlay').classList.add('open');
   }
 
@@ -1246,6 +1304,7 @@
     }
     if(error){ alert('Erro ao salvar orçamento: ' + error.message); return; }
 
+    clearOrcDraft();
     document.getElementById('orcamentoOverlay').classList.remove('open');
     loadOrcamentos();
   }
@@ -2090,7 +2149,10 @@
   document.getElementById('nlSaveBtn').addEventListener('click', saveNewLead);
 
   document.getElementById('newOrcamentoBtn').addEventListener('click', openNewOrcamento);
-  document.getElementById('orcamentoClose').addEventListener('click', () => document.getElementById('orcamentoOverlay').classList.remove('open'));
+  document.getElementById('orcamentoClose').addEventListener('click', () => {
+    saveOrcDraft();
+    document.getElementById('orcamentoOverlay').classList.remove('open');
+  });
   document.getElementById('orcAddItemBtn').addEventListener('click', () => { orcAddItemRow(); recalcOrcTotal(); });
   document.getElementById('orcDesconto').addEventListener('input', recalcOrcTotal);
   document.getElementById('orcSaveBtn').addEventListener('click', saveOrcamento);
@@ -2349,8 +2411,17 @@
   });
   document.getElementById('clientesSearch').addEventListener('input', (e) => { clientesSearchTerm = e.target.value; renderClientes(); });
 
-  [document.getElementById('detailOverlay'), document.getElementById('newLeadOverlay'), document.getElementById('agendaOverlay'), document.getElementById('orcamentoOverlay'), document.getElementById('tarefaOverlay'), document.getElementById('despesaOverlay')].forEach(ov => {
+  // Overlays só de leitura: clique no fundo fecha normal.
+  [document.getElementById('detailOverlay'), document.getElementById('agendaOverlay')].forEach(ov => {
     ov.addEventListener('click', e => { if(e.target === ov){ ov.classList.remove('open'); } });
+  });
+
+  // Formulários: clique no fundo NÃO fecha sem confirmar — evita perder o que foi digitado.
+  [document.getElementById('newLeadOverlay'), document.getElementById('orcamentoOverlay'), document.getElementById('tarefaOverlay'), document.getElementById('despesaOverlay')].forEach(ov => {
+    ov.addEventListener('click', e => {
+      if(e.target !== ov) return;
+      if(confirm('Fechar sem salvar? O que você digitou fica guardado como rascunho.')) ov.classList.remove('open');
+    });
   });
 </script>
 
