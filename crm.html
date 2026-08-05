@@ -137,8 +137,9 @@
   .app-shell{display:flex; min-height:100vh;}
   .sidebar{width:56px; flex-shrink:0; border-right:1px solid var(--line); padding:28px 10px; display:flex; flex-direction:column; gap:6px; position:sticky; top:0; height:100vh; overflow:hidden; transition:width 0.18s ease; z-index:20;}
   .sidebar:hover, .sidebar.pinned{width:190px; padding:28px 18px;}
-  .sidebar .logo{font-size:20px; margin-bottom:24px; white-space:nowrap;}
-  .sidebar-pin{background:none; border:none; color:rgba(var(--cream-rgb),0.4); font-size:16px; cursor:pointer; text-align:left; padding:0 2px; margin-bottom:16px; align-self:flex-start;}
+  .logo-row{display:flex; align-items:center; gap:8px; margin-bottom:24px;}
+  .sidebar .logo{font-size:20px; margin-bottom:0; white-space:nowrap;}
+  .sidebar-pin{background:none; border:none; color:rgba(var(--cream-rgb),0.4); font-size:16px; cursor:pointer; padding:0; flex-shrink:0;}
   .sidebar-pin:hover{color:var(--amber);}
   .sidebar.pinned .sidebar-pin{color:var(--amber);}
   .navgroup{margin-bottom:14px;}
@@ -180,7 +181,7 @@
     }
     .sidebar.mobile-open{transform:translateX(0);}
     .sidebar-pin{display:none;}
-    .sidebar .logo{margin-bottom:20px; margin-right:0;}
+    .logo-row{margin-bottom:20px;}
     .navgroup{margin-bottom:14px; display:block;}
     .navgroup-label{display:block;}
     .side-nav{flex-direction:column;}
@@ -387,8 +388,10 @@
 <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 <div class="app-shell">
   <aside class="sidebar" id="sidebar">
-    <button class="sidebar-pin" id="sidebarPin" title="Fixar menu aberto">≡</button>
-    <div class="logo display"><span class="logo-short" style="color:var(--amber);">REC</span><span class="full-label">GORILA<span style="color:var(--amber);">REC</span></span></div>
+    <div class="logo-row">
+      <button class="sidebar-pin" id="sidebarPin" title="Fixar menu aberto">≡</button>
+      <div class="logo display"><span class="logo-short" style="color:var(--amber);">REC</span><span class="full-label">GORILA<span style="color:var(--amber);">REC</span></span></div>
+    </div>
     <div class="navgroup">
       <div class="navgroup-label full-label">Painel</div>
       <nav class="side-nav">
