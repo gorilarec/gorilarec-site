@@ -6,6 +6,7 @@
 <title>GORILAREC — Direção de Fotografia & Vídeo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="video" href="videos/camera-fx30-assembly.mp4?v=3" type="video/mp4">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -555,7 +556,7 @@
   </div>
   <div class="hero-photo hero-camera-hover" id="heroCameraHover">
     <img src="videos/camera-fx30-poster.jpg?v=3" alt="Câmera Sony FX30 desmontada">
-    <video src="videos/camera-fx30-assembly.mp4?v=2" muted playsinline preload="auto"></video>
+    <video src="videos/camera-fx30-assembly.mp4?v=3" muted playsinline preload="auto"></video>
   </div>
 </section>
 
@@ -710,9 +711,20 @@
     else video.pause();
   }
 
+  let videoReady = video.readyState >= 3;
+  let pendingReveal = false;
+  video.addEventListener('canplaythrough', () => {
+    videoReady = true;
+    if(pendingReveal){ wrap.classList.add('playing'); pendingReveal = false; }
+  }, {once:true});
+  function reveal(){
+    if(videoReady) wrap.classList.add('playing');
+    else pendingReveal = true;
+  }
+
   const hasHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   if(hasHover){
-    hero.addEventListener('mouseenter', () => { unlock(); wrap.classList.add('playing'); });
+    hero.addEventListener('mouseenter', () => { unlock(); reveal(); });
     hero.addEventListener('mousemove', (e) => scrub(e.clientX));
     hero.addEventListener('mouseleave', () => {
       wrap.classList.remove('playing');
@@ -724,7 +736,7 @@
   if(slider){
     slider.addEventListener('input', () => {
       unlock();
-      wrap.classList.add('playing');
+      reveal();
       if(!video.duration || isNaN(video.duration)) return;
       video.currentTime = (slider.value / 1000) * video.duration;
     });
