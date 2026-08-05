@@ -205,7 +205,20 @@
 
   /* GRADE DE PERFIS */
   .profile-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:16px;}
-  .profile-card{background:var(--bg-soft); border:1px solid var(--line); padding:20px; cursor:pointer; text-align:center; transition:border-color 0.2s ease; border-radius:10px;}
+  .profile-card{position:relative; background:var(--bg-soft); border:1px solid var(--line); padding:20px; cursor:pointer; text-align:center; transition:border-color 0.2s ease; border-radius:10px;}
+  .card-del-btn{
+    position:absolute; top:8px; right:8px; z-index:2;
+    width:24px; height:24px; border-radius:50%;
+    background:rgba(0,0,0,0.3); border:none; color:rgba(var(--cream-rgb),0.65);
+    font-size:15px; line-height:1; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .card-del-btn:hover{background:var(--red); color:#fff;}
+  .row-del-btn{
+    background:none; border:none; color:rgba(var(--cream-rgb),0.4);
+    font-size:16px; cursor:pointer; padding:2px 8px;
+  }
+  .row-del-btn:hover{color:var(--red);}
   .profile-card:hover{border-color:rgba(var(--amber-rgb),0.5);}
   .avatar{width:64px; height:64px; border-radius:50%; background:var(--bg-soft2); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:22px; color:var(--amber); margin:0 auto 12px; overflow:hidden;}
   .avatar img{width:100%; height:100%; object-fit:cover;}
@@ -495,7 +508,7 @@
       <div id="tableView" style="display:none;">
         <table>
           <thead>
-            <tr><th>Nome</th><th>Nicho</th><th>Status</th><th>Investimento</th><th>Valor</th><th>Perfil</th></tr>
+            <tr><th>Nome</th><th>Nicho</th><th>Status</th><th>Investimento</th><th>Valor</th><th>Perfil</th><th></th></tr>
           </thead>
           <tbody id="rowsBody"></tbody>
         </table>
@@ -962,6 +975,7 @@
       const statusLabel = STATUSES.find(s => s.key === statusKey)?.label || 'Novo';
       return `
         <div class="profile-card" data-id="${l.id}">
+          <button class="card-del-btn" data-id="${l.id}" data-nome="${escapeHtml(l.nome)}" title="Apagar">×</button>
           ${avatarHtml(l)}
           <div class="name" title="${escapeHtml(l.nome)}">${escapeHtml(l.nome)}</div>
           <div class="sub" title="${escapeHtml(l.nicho || '')}">${escapeHtml(l.nicho || 'Sem nicho')}</div>
@@ -978,8 +992,14 @@
 
     wrap.querySelectorAll('.profile-card').forEach(card => {
       card.addEventListener('click', (e) => {
-        if(e.target.classList.contains('statusSelect')) return;
+        if(e.target.classList.contains('statusSelect') || e.target.classList.contains('card-del-btn')) return;
         openDetail(card.dataset.id);
+      });
+    });
+    wrap.querySelectorAll('.card-del-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        deleteLead(btn.dataset.id, btn.dataset.nome);
       });
     });
     wrap.querySelectorAll('.statusSelect').forEach(sel => {
@@ -1005,10 +1025,20 @@
         <td>${escapeHtml(l.investimento || '—')}</td>
         <td>${valor}</td>
         <td><span class="tag ${perfil}">${perfil === 'hot' ? 'QUENTE' : perfil === 'warm' ? 'MORNO' : 'FRIO'}</span></td>
+        <td><button class="row-del-btn" data-id="${l.id}" data-nome="${escapeHtml(l.nome)}" title="Apagar">×</button></td>
       </tr>`;
     }).join('');
     tbody.querySelectorAll('tr').forEach(tr => {
-      tr.addEventListener('click', () => openDetail(tr.dataset.id));
+      tr.addEventListener('click', (e) => {
+        if(e.target.classList.contains('row-del-btn')) return;
+        openDetail(tr.dataset.id);
+      });
+    });
+    tbody.querySelectorAll('.row-del-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        deleteLead(btn.dataset.id, btn.dataset.nome);
+      });
     });
   }
 
@@ -1046,6 +1076,7 @@
       const wa = waUrl(l.whatsapp);
       return `
         <div class="profile-card" data-id="${l.id}">
+          <button class="card-del-btn" data-id="${l.id}" data-nome="${escapeHtml(l.nome)}" title="Apagar">×</button>
           ${avatarHtml(l)}
           <div class="name" title="${escapeHtml(l.nome)}">${escapeHtml(l.nome)}</div>
           <div class="sub" title="${escapeHtml(l.nicho || '')}">${escapeHtml(l.nicho || 'Sem nicho')}</div>
@@ -1057,7 +1088,16 @@
     }).join('');
 
     wrap.querySelectorAll('.profile-card').forEach(card => {
-      card.addEventListener('click', () => openDetail(card.dataset.id));
+      card.addEventListener('click', (e) => {
+        if(e.target.classList.contains('card-del-btn')) return;
+        openDetail(card.dataset.id);
+      });
+    });
+    wrap.querySelectorAll('.card-del-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        deleteLead(btn.dataset.id, btn.dataset.nome);
+      });
     });
   }
 
@@ -1470,6 +1510,22 @@
     renderAll();
   }
 
+  async function deleteLead(id, nome){
+    if(!confirm(`Apagar "${nome || 'este lead'}" e tudo relacionado a ele (notas, tarefas, gravações)? Não tem como desfazer.`)) return;
+    await Promise.all([
+      supabaseClient.from('notas').delete().eq('lead_id', id),
+      supabaseClient.from('tarefas').delete().eq('lead_id', id),
+      supabaseClient.from('gravacoes').delete().eq('lead_id', id),
+    ]);
+    const { error } = await supabaseClient.from('leads').delete().eq('id', id);
+    if(error){ alert('Erro ao apagar: ' + error.message); return; }
+    leads = leads.filter(l => String(l.id) !== String(id));
+    document.getElementById('detailOverlay').classList.remove('open');
+    renderAll();
+    if(currentSection === 'clientes') renderClientes();
+    if(currentSection === 'painel') loadPainel();
+  }
+
   async function loadLeads(){
     setStatus('CARREGANDO...', false);
     const { data, error } = await supabaseClient.from('leads').select('*').order('created_at', {ascending:false});
@@ -1538,6 +1594,7 @@
       </div>
       <div class="field"><label>Referência</label><input type="text" id="dtReferencia" value="${escapeHtml(lead.referencia || '')}"></div>
       <button class="btn" id="dtSaveBtn" style="width:100%;">SALVAR ALTERAÇÕES</button>
+      <button class="btn ghost small" id="dtDeleteBtn" style="width:100%; margin-top:8px; color:var(--red); border-color:var(--red);">APAGAR ESTE LEAD/CLIENTE</button>
 
       <div class="section-title">Notas / histórico de contato</div>
       <div class="row-inline" style="margin-bottom:14px;">
@@ -1596,6 +1653,7 @@
 
     document.getElementById('detailClose').addEventListener('click', closeDetail);
     document.getElementById('dtSaveBtn').addEventListener('click', () => saveDetail(id));
+    document.getElementById('dtDeleteBtn').addEventListener('click', () => deleteLead(id, lead.nome));
     document.getElementById('notaSaveBtn').addEventListener('click', () => addNota(id));
     document.getElementById('tarefaSaveBtn').addEventListener('click', () => addTarefa(id));
     document.getElementById('gravSaveBtn').addEventListener('click', () => addGravacao(id));
