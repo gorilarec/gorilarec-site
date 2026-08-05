@@ -6,7 +6,8 @@
 <title>GORILAREC — Direção de Fotografia & Vídeo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="video" href="videos/camera-fx30-assembly.mp4?v=3" type="video/mp4">
+<link rel="preload" as="video" href="videos/camera-fx30-assembly-mobile.mp4?v=1" type="video/mp4" media="(max-width:900px)">
+<link rel="preload" as="video" href="videos/camera-fx30-assembly.mp4?v=3" type="video/mp4" media="(min-width:901px)">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -556,7 +557,10 @@
   </div>
   <div class="hero-photo hero-camera-hover" id="heroCameraHover">
     <img src="videos/camera-fx30-poster.jpg?v=3" alt="Câmera Sony FX30 desmontada">
-    <video src="videos/camera-fx30-assembly.mp4?v=3" muted playsinline preload="auto"></video>
+    <video muted playsinline preload="auto">
+      <source src="videos/camera-fx30-assembly-mobile.mp4?v=1" type="video/mp4" media="(max-width:900px)">
+      <source src="videos/camera-fx30-assembly.mp4?v=3" type="video/mp4">
+    </video>
   </div>
 </section>
 
