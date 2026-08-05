@@ -190,7 +190,7 @@
     font-size:13px; color:rgba(237,230,216,0.55); letter-spacing:0.08em;
   }
   @media(max-width:900px){
-    .hero-photo{width:100%; height:auto; aspect-ratio:4/5; opacity:0.45;}
+    .hero-photo{width:100%; height:auto; aspect-ratio:4/5; opacity:0.62;}
     .hero-photo img{object-position:50% 28%;}
     .hero-camera-hover img,
     .hero-camera-hover video{
@@ -198,7 +198,7 @@
       transform:scale(1);
     }
     .hero-photo::after{
-      background:linear-gradient(180deg, var(--bg) 0%, rgba(18,17,16,0.35) 30%, rgba(18,17,16,0.85) 100%);
+      background:linear-gradient(180deg, rgba(18,17,16,0.8) 0%, rgba(18,17,16,0.22) 30%, rgba(18,17,16,0.68) 100%);
     }
     .hero-content{padding:150px 6vw 60px; max-width:100%;}
     .hero-camera-hover{pointer-events:none;}
@@ -709,18 +709,29 @@
   function unlock(){
     if(unlocked) return;
     unlocked = true;
-    video.load();
     const p = video.play();
-    if(p && p.then) p.then(() => video.pause()).catch(() => {});
+    if(p && p.then) p.then(() => video.pause()).catch(() => { unlocked = false; });
     else video.pause();
   }
 
-  let videoReady = video.readyState >= 3;
+  // Prepara o decodificador assim que possível, sem esperar interação.
+  if(video.readyState === 0) video.load();
+  window.addEventListener('DOMContentLoaded', unlock, {once:true});
+  window.addEventListener('load', unlock, {once:true});
+  ['pointerdown','touchstart','mousemove','scroll'].forEach(ev => {
+    window.addEventListener(ev, unlock, {once:true, passive:true});
+  });
+
+  let videoReady = video.readyState >= 2;
   let pendingReveal = false;
-  video.addEventListener('canplaythrough', () => {
+  function markReady(){
+    if(videoReady) return;
     videoReady = true;
     if(pendingReveal){ wrap.classList.add('playing'); pendingReveal = false; }
-  }, {once:true});
+    if(pendingX !== null && rafId === null) rafId = requestAnimationFrame(applyScrub);
+  }
+  video.addEventListener('loadeddata', markReady, {once:true});
+  video.addEventListener('canplay', markReady, {once:true});
   function reveal(){
     if(videoReady) wrap.classList.add('playing');
     else pendingReveal = true;
@@ -744,8 +755,12 @@
       if(!video.duration || isNaN(video.duration)) return;
       video.currentTime = (slider.value / 1000) * video.duration;
     });
-    video.addEventListener('loadedmetadata', () => {
-      video.currentTime = (slider.value / 1000) * video.duration;
+    // Se o usuário arrastar antes do vídeo carregar, aplica a posição assim que der.
+    ['loadedmetadata','loadeddata','canplay'].forEach(ev => {
+      video.addEventListener(ev, () => {
+        if(!video.duration || isNaN(video.duration)) return;
+        video.currentTime = (slider.value / 1000) * video.duration;
+      }, {once:true});
     });
   }
 })();
