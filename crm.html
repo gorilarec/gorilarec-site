@@ -424,6 +424,7 @@
   <header>
     <div class="status mono" id="statusLine"><span class="dot" id="statusDot"></span>CONECTANDO...</div>
     <div class="right">
+      <button class="btn ghost" id="newDespesaHeaderBtn" style="display:none;">+ NOVA DESPESA</button>
       <button class="btn" id="newLeadBtn">+ NOVO CLIENTE</button>
     </div>
   </header>
@@ -742,8 +743,16 @@
 <div class="overlay" id="newLeadOverlay">
   <div class="modal">
     <button class="modal-close" id="newLeadClose">×</button>
-    <h2 class="display">Novo cliente</h2>
+    <h2 class="display" id="newLeadTitle">Novo cliente</h2>
     <span class="mono tiny">CADASTRO MANUAL</span>
+
+    <div class="field" id="nlTipoField" style="display:none;">
+      <label>Cadastrar como</label>
+      <select id="nlTipo">
+        <option value="lead">Lead (entra no funil de Leads)</option>
+        <option value="cliente">Cliente (entra direto em Clientes)</option>
+      </select>
+    </div>
 
     <div class="field-row">
       <div class="field"><label>Nome</label><input type="text" id="nlNome"></div>
@@ -1490,7 +1499,8 @@
     const { error } = await supabaseClient.from('despesas').insert(payload);
     if(error){ alert('Erro ao salvar despesa: ' + error.message); return; }
     document.getElementById('despesaOverlay').classList.remove('open');
-    loadDespesas();
+    if(currentSection === 'despesas') loadDespesas();
+    if(currentSection === 'painel') loadPainelDespesas();
   }
 
   function setStatus(text, ok){
@@ -1954,7 +1964,16 @@
   document.getElementById('calNext').addEventListener('click', () => { calMonth.setMonth(calMonth.getMonth()+1); calSelectedDate = null; renderCalendar(); });
 
   // ---------- NOVO CLIENTE ----------
-  function openNewLead(){ document.getElementById('newLeadOverlay').classList.add('open'); }
+  let newLeadAsCliente = false;
+  function openNewLead(mode){
+    const askMode = mode === 'ask';
+    newLeadAsCliente = mode === 'cliente';
+    document.getElementById('nlTipoField').style.display = askMode ? 'block' : 'none';
+    document.getElementById('nlTipo').value = 'lead';
+    document.getElementById('newLeadTitle').textContent = newLeadAsCliente ? 'Novo cliente' : 'Novo lead';
+    document.getElementById('nlSaveBtn').textContent = newLeadAsCliente ? 'SALVAR CLIENTE' : 'SALVAR LEAD';
+    document.getElementById('newLeadOverlay').classList.add('open');
+  }
   function closeNewLead(){ document.getElementById('newLeadOverlay').classList.remove('open'); }
 
   async function saveNewLead(){
@@ -1972,7 +1991,7 @@
       nivel: document.getElementById('nlNivel').value,
       prazo: document.getElementById('nlPrazo').value,
       origem: document.getElementById('nlOrigem').value,
-      status_pipeline: 'novo',
+      status_pipeline: newLeadAsCliente ? 'fechado' : 'novo',
       referencia: 'Cadastro manual',
     };
 
@@ -1980,6 +1999,8 @@
     if(error){ alert('Erro ao salvar cliente: ' + error.message); return; }
     leads.unshift(data);
     renderAll();
+    if(currentSection === 'clientes') renderClientes();
+    if(currentSection === 'painel') loadPainel();
     closeNewLead();
     ['nlNome','nlWhats','nlInstagram','nlSite','nlNicho'].forEach(id => document.getElementById(id).value = '');
   }
@@ -2052,7 +2073,16 @@
     errorEl.style.color = 'var(--red)';
   });
 
-  document.getElementById('newLeadBtn').addEventListener('click', openNewLead);
+  document.getElementById('newLeadBtn').addEventListener('click', () => {
+    const mode = currentSection === 'painel' ? 'ask' : currentSection === 'clientes' ? 'cliente' : 'lead';
+    openNewLead(mode);
+  });
+  document.getElementById('nlTipo').addEventListener('change', (e) => {
+    newLeadAsCliente = e.target.value === 'cliente';
+    document.getElementById('newLeadTitle').textContent = newLeadAsCliente ? 'Novo cliente' : 'Novo lead';
+    document.getElementById('nlSaveBtn').textContent = newLeadAsCliente ? 'SALVAR CLIENTE' : 'SALVAR LEAD';
+  });
+  document.getElementById('newDespesaHeaderBtn').addEventListener('click', openNewDespesa);
   document.getElementById('newLeadClose').addEventListener('click', closeNewLead);
   document.getElementById('nlSaveBtn').addEventListener('click', saveNewLead);
 
@@ -2093,8 +2123,30 @@
   document.getElementById('gridSearch').addEventListener('input', (e) => { gridSearchTerm = e.target.value; renderGrid(); });
   document.getElementById('gridStatusFilter').addEventListener('change', (e) => { gridFilterStatus = e.target.value; renderGrid(); });
 
+  function updateHeaderButtons(name){
+    const newLeadBtn = document.getElementById('newLeadBtn');
+    const newDespesaHeaderBtn = document.getElementById('newDespesaHeaderBtn');
+    if(name === 'painel'){
+      newLeadBtn.textContent = '+ NOVO CLIENTE/LEAD';
+      newLeadBtn.style.display = '';
+      newDespesaHeaderBtn.style.display = '';
+    } else if(name === 'leads'){
+      newLeadBtn.textContent = '+ ADICIONAR NOVO LEAD';
+      newLeadBtn.style.display = '';
+      newDespesaHeaderBtn.style.display = 'none';
+    } else if(name === 'clientes'){
+      newLeadBtn.textContent = '+ ADICIONAR NOVO CLIENTE';
+      newLeadBtn.style.display = '';
+      newDespesaHeaderBtn.style.display = 'none';
+    } else {
+      newLeadBtn.style.display = 'none';
+      newDespesaHeaderBtn.style.display = 'none';
+    }
+  }
+
   function showSection(name){
     currentSection = name;
+    updateHeaderButtons(name);
     ['navPainelBtn','navLeadsBtn','navClientesBtn','navOrcamentosBtn','navTarefasBtn','navDespesasBtn'].forEach(id => document.getElementById(id).classList.remove('active'));
     ['painelSection','leadsSection','clientesSection','orcamentosSection','tarefasSection','despesasSection'].forEach(id => document.getElementById(id).style.display = 'none');
     if(name === 'painel'){
