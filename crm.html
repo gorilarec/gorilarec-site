@@ -1589,8 +1589,9 @@
       supabaseClient.from('tarefas').delete().eq('lead_id', id),
       supabaseClient.from('gravacoes').delete().eq('lead_id', id),
     ]);
-    const { error } = await supabaseClient.from('leads').delete().eq('id', id);
+    const { data, error } = await supabaseClient.from('leads').delete().eq('id', id).select();
     if(error){ alert('Erro ao apagar: ' + error.message); return; }
+    if(!data || !data.length){ alert('Não consegui apagar de verdade (permissão do banco). Confirma se a política de DELETE foi criada e tenta de novo.'); return; }
     leads = leads.filter(l => String(l.id) !== String(id));
     document.getElementById('detailOverlay').classList.remove('open');
     renderAll();
@@ -2091,7 +2092,13 @@
 
     document.getElementById('gate').style.display = 'none';
     document.getElementById('panel').style.display = 'block';
-    loadLeads().then(() => showSection('painel'));
+    loadLeads().then(() => showSection(lastSection()));
+  }
+
+  const VALID_SECTIONS = ['painel','leads','clientes','orcamentos','tarefas','despesas'];
+  function lastSection(){
+    const saved = localStorage.getItem('gorilarec-secao');
+    return VALID_SECTIONS.includes(saved) ? saved : 'painel';
   }
 
   async function initSession(){
@@ -2099,7 +2106,7 @@
     if(session){
       document.getElementById('gate').style.display = 'none';
       document.getElementById('panel').style.display = 'block';
-      loadLeads().then(() => showSection('painel'));
+      loadLeads().then(() => showSection(lastSection()));
     }
   }
   initSession();
@@ -2211,6 +2218,7 @@
 
   function showSection(name){
     currentSection = name;
+    localStorage.setItem('gorilarec-secao', name);
     updateHeaderButtons(name);
     ['navPainelBtn','navLeadsBtn','navClientesBtn','navOrcamentosBtn','navTarefasBtn','navDespesasBtn'].forEach(id => document.getElementById(id).classList.remove('active'));
     ['painelSection','leadsSection','clientesSection','orcamentosSection','tarefasSection','despesasSection'].forEach(id => document.getElementById(id).style.display = 'none');
