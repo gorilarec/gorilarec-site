@@ -256,18 +256,21 @@
     `;
 
     try {
-      const { error } = await supabaseClient.from('leads').insert({
-        user_id: OWNER_ID,
-        nome: answers.nome,
-        whatsapp: answers.whats,
-        nicho: answers.nicho,
-        faturamento: answers.faturamento,
-        nivel: answers.nivel,
-        referencia: answers.referencia,
-        investimento: answers.investimento,
-        prazo: answers.prazo,
+      const resp = await fetch(`${SUPABASE_URL}/functions/v1/novo-lead`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nome: answers.nome,
+          whatsapp: answers.whats,
+          nicho: answers.nicho,
+          faturamento: answers.faturamento,
+          nivel: answers.nivel,
+          referencia: answers.referencia,
+          investimento: answers.investimento,
+          prazo: answers.prazo,
+        }),
       });
-      if(error) throw error;
+      if(!resp.ok) throw new Error('Falha ao enviar');
 
       statusMsg.textContent = 'Obrigado! Suas respostas foram registradas. Se quiser já ir adiantando a conversa, chama no WhatsApp:';
       const msg = `Olá! Acabei de responder o questionário no site.%0A%0ANome: ${answers.nome}%0ANicho: ${answers.nicho}`;
