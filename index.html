@@ -212,7 +212,7 @@
     }
     .hero-content{
       position:absolute; inset:0; z-index:3;
-      padding:88px 6vw 24px; max-width:100%;
+      padding:88px 6vw 40px; max-width:100%;
       min-height:auto;
       justify-content:flex-end;
     }
@@ -224,7 +224,7 @@
   @media(max-width:900px){
     .mobile-scrub-bar{
       display:block;
-      width:60%; margin:auto auto 0 auto;
+      width:60%; margin:18px auto 0 auto;
       text-align:center; pointer-events:auto;
     }
     .scrub-hint{
@@ -1203,16 +1203,33 @@
     goToWhatsApp(texto);
   });
 
-  // Assim que a pessoa rolar um pouco, mostra a bolinha de notificação (tipo iOS) —
-  // nunca abre o chat sozinho, nunca rouba o foco do teclado.
+  // Ao rolar: mostra a bolinha de notificação (tipo iOS).
+  // 20s depois, se a pessoa ainda não interagiu, abre o chat sozinho —
+  // mas nunca rouba o foco do teclado (não atrapalha quem digita no formulário).
   const badge = document.getElementById('waBadge');
+  let jaInteragiu = false;
+
+  function marcarInteracao(){ jaInteragiu = true; }
+  fab.addEventListener('click', () => { marcarInteracao(); badge.classList.remove('show'); });
+  document.querySelectorAll('#waQuick button').forEach(b => b.addEventListener('click', marcarInteracao));
+  form.addEventListener('submit', marcarInteracao);
+  // Se estiver digitando em qualquer campo da página, não abre por cima.
+  document.addEventListener('focusin', (e) => {
+    if(e.target.matches('input, textarea, select')) marcarInteracao();
+  });
+
   if(!sessionStorage.getItem('wa_badge_visto')){
     window.addEventListener('scroll', () => {
       sessionStorage.setItem('wa_badge_visto', '1');
       badge.classList.add('show');
+
+      setTimeout(() => {
+        if(jaInteragiu || widget.classList.contains('open')) return;
+        toggle(true, false);
+        badge.classList.remove('show');
+      }, 20000);
     }, {passive:true, once:true});
   }
-  fab.addEventListener('click', () => badge.classList.remove('show'));
 })();
 </script>
 
